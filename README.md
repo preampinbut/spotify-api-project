@@ -53,28 +53,18 @@ To run the backend and frontend containers using Docker Compose, you can use the
 
 ```yaml
 services:
-  backend:
-    image: your-backend-image-name:your-backend-image-tag
-    environment:
-      CLIENT_ID: your-client-id
-      CLIENT_SECRET: your-client-secret
-      ENDPOINT: http://backend-service:8888
-      PORT: "8888"
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile.frontend
       args:
         VITE_BACKEND_ENDPOINT: http://backend-service:8888
         VITE_BACKEND_WEBSOCKET: ws://backend-service:8888
-    ports:
-      - "80:80"
 ```
 
 Make sure to replace `your-backend-image-name`, `your-backend-image-tag`, `your-client-id`, and `your-client-secret` with the actual values for your backend container, and replace `your-frontend-image-name` with the actual name of your frontend Docker image.
 
 ## Backend
-This backend container does not requires any step to build container but do requires the following environment variables to able to deploy:
+This backend container does not requires any step to build container but do requires the following environment variables to be able to deploy:
 
 `CLIENT_ID`: This is the client ID for the authentication service.\
 `CLIENT_SECRET`: This is the client secret for the authentication service.\
