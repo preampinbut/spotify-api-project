@@ -61,8 +61,6 @@ services:
         VITE_BACKEND_WEBSOCKET: ws://backend-service:8888
 ```
 
-Make sure to replace `your-backend-image-name`, `your-backend-image-tag`, `your-client-id`, and `your-client-secret` with the actual values for your backend container, and replace `your-frontend-image-name` with the actual name of your frontend Docker image.
-
 ## Backend
 This backend container does not requires any step to build container but do requires the following environment variables to be able to deploy:
 
