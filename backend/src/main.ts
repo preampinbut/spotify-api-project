@@ -148,27 +148,31 @@ async function getPlayingState(): Promise<{}> {
         return { status: 400, name: "Currently Does Not Playing Any Track", artists: [{ name: "Pream Pinbut" }] };
       }
 
-      let artists = await Promise.all( data.item.artists.map(async (item: any) => {
+      let ids = "";
 
-        let headersList = {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + access_token
+      let index = 0;
+      data.item.artists.map((item: any) => {
+        ids += item.id;
+        if (index < data.item.artists.length - 1) {
+          ids += ","
+          index += 1;
         }
+      });
 
-        return await fetch(`https://api.spotify.com/v1/artists/${item.id}`,
-          {
-            method: "GET",
-            headers: headersList
-          })
-          .then((response) => response.json())
-          .then((response) => {
-            return {
-              name: response.name,
-              image: response.images[2].url
-            };
+      let artists: { name: string, image: string }[] = [];
+
+      await fetch(`https://api.spotify.com/v1/artists?ids=${ids}`,{
+        method: "GET",
+        headers: headersList
+      }).then((response) => response.json())
+      .then((datas) => {
+        datas.artists.forEach((item: any) => {
+          artists.push({
+            name: item.name,
+            image: item.images[0].url
           });
-      }));
+        });
+      })
 
       const response = {
         status: 200,
@@ -234,6 +238,6 @@ async function setPlayerState() {
   })
 };
 
-setInterval(setPlayerState, 1000 * 1);
+setInterval(setPlayerState, 1000 * 3);
 
 setInterval(refreshAccessToken, 1000 * 60 * 30);
