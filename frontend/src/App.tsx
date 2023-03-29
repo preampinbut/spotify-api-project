@@ -109,7 +109,7 @@ export default function App() {
           Artists:
           {playerState.artists.map((item) => {
             return (
-              <div
+              <span
                 key={item.name}
                 className="inline-block m-2"
               >
@@ -134,7 +134,7 @@ export default function App() {
                     {item.name}
                   </span>
                 </CopyToClipboard>
-              </div>
+              </span>
             );
           })}
         </p>
