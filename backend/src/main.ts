@@ -26,7 +26,7 @@ wss.on("connection", (ws) => {
     response = JSON.stringify({
       status: 500,
       name: "Something is wrong with the server. What possibly happened is I forgot to login.",
-      artists: ["Pream Pinbut"]
+      artists: [{ name: "Pream Pinbut" }]
     });
   } else {
     response = JSON.stringify(playerState);
@@ -82,7 +82,7 @@ app.get("/api/get", async (req, res) => {
     response = JSON.stringify({
       status: 500,
       name: "Something is wrong with the server. What possibly happened is I forgot to login.",
-      artists: ["Pream Pinbut"]
+      artists: [{ name: "Pream Pinbut" }]
     });
   } else {
     response = playerState;
@@ -183,7 +183,7 @@ async function getPlayingState(): Promise<{}> {
       return {
         status: 500,
         name: "Something is wrong with the server. What possibly happened is I forgot to login.",
-        artists: ["Pream Pinbut"]
+        artists: [{ name: "Pream Pinbut" }]
       };
     });
 };
