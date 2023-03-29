@@ -4,6 +4,7 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 interface PlayerState {
   status: number;
   name: string;
+  image?: string;
   artists: Artist[];
 }
 
@@ -91,6 +92,13 @@ export default function App() {
         <p>
           <span>Now playing:</span>
           <span className="m-2 inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-full align-middle">
+            {playerState.image && (
+              <img
+                className="inline w-8 rounded-full"
+                src={playerState.image}
+                alt={playerState.name}
+              />
+            )}
             <CopyToClipboard
               text={playerState.name}
               onCopy={() => {
@@ -98,7 +106,7 @@ export default function App() {
               }}
             >
               <span
-                className={`font-bold hover:cursor-pointer ${
+                className={`font-bold ml-2 hover:cursor-pointer ${
                   playerState.status !== 200 ? "text-red-600" : "text-green-600"
                 }`}
               >
@@ -115,11 +123,13 @@ export default function App() {
                 key={item.name}
                 className="inline-block m-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-full align-middle"
               >
-                <img
-                  className="inline w-8 rounded-full"
-                  src={item.image}
-                  alt={item.name}
-                />
+                {item.image && (
+                  <img
+                    className="inline w-8 rounded-full"
+                    src={item.image}
+                    alt={item.name}
+                  />
+                )}
                 <CopyToClipboard
                   onCopy={() => {
                     alert(`${item.name} Copied!`);

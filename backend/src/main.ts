@@ -173,6 +173,7 @@ async function getPlayingState(): Promise<{}> {
       const response = {
         status: 200,
         name: data.item.name,
+        image: data.item.album.images[2].url,
         artists: artists
       };
       return response;
