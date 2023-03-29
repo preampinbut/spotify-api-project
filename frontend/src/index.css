@@ -12,7 +12,7 @@
   }
 
   img {
-    @apply w-12;
+    @apply w-12 h-12;
   }
 
 }
