@@ -145,7 +145,7 @@ async function getPlayingState(): Promise<{}> {
     .then(async (data: any) => {
       debugResponse = data;
       if (data.is_playing === false) {
-        return { status: 400, name: "Currently Does Not Playing Any Track", artists: ["Pream Pinbut"] };
+        return { status: 400, name: "Currently Does Not Playing Any Track", artists: [{ name: "Pream Pinbut" }] };
       }
 
       let artists = await Promise.all( data.item.artists.map(async (item: any) => {
