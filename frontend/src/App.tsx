@@ -87,31 +87,33 @@ export default function App() {
 
   return (
     <main className="min-h-screen min-w-full flex justify-center items-center">
-      <div className="p-8 m-8 inline-block border border-1 border-green-600 rounded-lg whitespace-nowrap overflow-hidden">
-        <p className="whitespace-nowrap overflow-hidden text-ellipsis">
-          Now playing:
-          <CopyToClipboard
-            text={playerState.name}
-            onCopy={() => {
-              alert(`${playerState.name} Copied!`);
-            }}
-          >
-            <span
-              className={`font-bold ml-2 hover:cursor-pointer ${
-                playerState.status !== 200 ? "text-red-600" : "text-green-600"
-              }`}
+      <div className="p-8 m-8 inline-block border border-1 border-green-600 rounded-lg overflow-hidden">
+        <p>
+          <span>Now playing:</span>
+          <span className="m-2 inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-full align-middle">
+            <CopyToClipboard
+              text={playerState.name}
+              onCopy={() => {
+                alert(`${playerState.name} Copied!`);
+              }}
             >
-              {playerState.name}
-            </span>
-          </CopyToClipboard>
+              <span
+                className={`font-bold hover:cursor-pointer ${
+                  playerState.status !== 200 ? "text-red-600" : "text-green-600"
+                }`}
+              >
+                {playerState.name}
+              </span>
+            </CopyToClipboard>
+          </span>
         </p>
-        <p className="whitespace-normal">
+        <p>
           Artists:
           {playerState.artists.map((item) => {
             return (
               <span
                 key={item.name}
-                className="inline-block m-2"
+                className="inline-block m-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-full align-middle"
               >
                 <img
                   className="inline w-8 rounded-full"
