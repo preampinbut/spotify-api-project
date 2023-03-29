@@ -4,14 +4,23 @@ import { CopyToClipboard } from "react-copy-to-clipboard";
 interface PlayerState {
   status: number;
   name: string;
-  artists: string[];
+  artists: Artist[];
+}
+
+interface Artist {
+  name: string;
+  image?: string;
 }
 
 export default function App() {
   const [playerState, setPlayerState] = useState<PlayerState>({
     status: 0,
     name: "Connecting.",
-    artists: ["Connecting."],
+    artists: [
+      {
+        name: "Connecting.",
+      },
+    ],
   });
 
   function createWebSocket() {
@@ -44,7 +53,11 @@ export default function App() {
       setPlayerState({
         status: 0,
         name: "Connecting.",
-        artists: ["Connecting."],
+        artists: [
+          {
+            name: "Connecting.",
+          },
+        ],
       });
     };
 
@@ -84,7 +97,7 @@ export default function App() {
             }}
           >
             <span
-              className={`font-bold first:ml-4 hover:cursor-pointer ${
+              className={`font-bold ml-2 hover:cursor-pointer ${
                 playerState.status !== 200 ? "text-red-600" : "text-green-600"
               }`}
             >
@@ -92,27 +105,36 @@ export default function App() {
             </span>
           </CopyToClipboard>
         </p>
-        <p className="whitespace-nowrap overflow-hidden text-ellipsis">
+        <p className="whitespace-normal">
           Artists:
           {playerState.artists.map((item) => {
             return (
-              <CopyToClipboard
-                onCopy={() => {
-                  alert(`${item} Copied!`);
-                }}
-                key={item}
-                text={item}
+              <div
+                key={item.name}
+                className="inline-block m-2"
               >
-                <span
-                  className={`font-bold first:ml-4 ml-2 hover:cursor-pointer ${
-                    playerState.status !== 200
-                      ? "text-red-600"
-                      : "text-green-600"
-                  }`}
+                <img
+                  className="inline w-8 rounded-full"
+                  src={item.image}
+                  alt={item.name}
+                />
+                <CopyToClipboard
+                  onCopy={() => {
+                    alert(`${item.name} Copied!`);
+                  }}
+                  text={item.name}
                 >
-                  {item}
-                </span>
-              </CopyToClipboard>
+                  <span
+                    className={`font-bold ml-2 hover:cursor-pointer ${
+                      playerState.status !== 200
+                        ? "text-red-600"
+                        : "text-green-600"
+                    }`}
+                  >
+                    {item.name}
+                  </span>
+                </CopyToClipboard>
+              </div>
             );
           })}
         </p>

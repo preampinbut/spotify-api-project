@@ -26,7 +26,7 @@ wss.on("connection", (ws) => {
     response = JSON.stringify({
       status: 500,
       name: "Something is wrong with the server. What possibly happened is I forgot to login.",
-      artists: [ "Pream Pinbut" ]
+      artists: ["Pream Pinbut"]
     });
   } else {
     response = JSON.stringify(playerState);
@@ -82,10 +82,10 @@ app.get("/api/get", async (req, res) => {
     response = JSON.stringify({
       status: 500,
       name: "Something is wrong with the server. What possibly happened is I forgot to login.",
-      artists: [ "Pream Pinbut" ]
+      artists: ["Pream Pinbut"]
     });
   } else {
-    response = JSON.stringify(playerState);
+    response = playerState;
   }
   res.json(response);
 });
@@ -105,7 +105,7 @@ function getAccessToken(code: string) {
   let headersList = {
     "Authorization": "Basic " + auth,
     "Content-Type": "application/x-www-form-urlencoded"
-   }
+  }
 
   let bodyContent = "code=" + code;
   bodyContent += "&redirect_uri=" + `${baseUrl}/api/callback`;
@@ -116,13 +116,13 @@ function getAccessToken(code: string) {
     body: bodyContent,
     headers: headersList
   })
-  .then((response) => {
-    return response.json();
-  })
-  .then((data: any) => {
-    access_token = data.access_token;
-    refresh_token = data.refresh_token;
-  });
+    .then((response) => {
+      return response.json();
+    })
+    .then((data: any) => {
+      access_token = data.access_token;
+      refresh_token = data.refresh_token;
+    });
 };
 
 async function getPlayingState(): Promise<{}> {
@@ -136,32 +136,55 @@ async function getPlayingState(): Promise<{}> {
     method: "GET",
     headers: headersList
   })
-  .then(async (response) => {
-    if (response.status === 204) {
-      return { is_playing: false };
-    }
-    return { status: response.status, ...await response.json() };
-  })
-  .then((data: any) => {
-    debugResponse = data;
-    if (data.is_playing === false) {
-      return { status: 400, name: "Currently Does Not Playing Any Track", artists: [ "Pream Pinbut" ] };
-    }
-    const response = {
-      status: 200,
-      name: data.item.name,
-      artists: data.item.artists.map((item: any) => { return item.name; })
-    };
-    return response;
-  })
-  .catch(async (e) => {
-    console.log(e);
-    return {
-      status: 500,
-      name: "Something is wrong with the server. What possibly happened is I forgot to login.",
-      artists: [ "Pream Pinbut" ]
-    };
-  });
+    .then(async (response) => {
+      if (response.status === 204) {
+        return { is_playing: false };
+      }
+      return { status: response.status, ...await response.json() };
+    })
+    .then(async (data: any) => {
+      debugResponse = data;
+      if (data.is_playing === false) {
+        return { status: 400, name: "Currently Does Not Playing Any Track", artists: ["Pream Pinbut"] };
+      }
+
+      let artists = await Promise.all( data.item.artists.map(async (item: any) => {
+
+        let headersList = {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + access_token
+        }
+
+        return await fetch(`https://api.spotify.com/v1/artists/${item.id}`,
+          {
+            method: "GET",
+            headers: headersList
+          })
+          .then((response) => response.json())
+          .then((response) => {
+            return {
+              name: response.name,
+              image: response.images[2].url
+            };
+          });
+      }));
+
+      const response = {
+        status: 200,
+        name: data.item.name,
+        artists: artists
+      };
+      return response;
+    })
+    .catch(async (e) => {
+      console.log(e);
+      return {
+        status: 500,
+        name: "Something is wrong with the server. What possibly happened is I forgot to login.",
+        artists: ["Pream Pinbut"]
+      };
+    });
 };
 
 async function refreshAccessToken() {
@@ -178,12 +201,12 @@ async function refreshAccessToken() {
     body: bodyContent,
     headers: headersList
   })
-  .then((response) => {
-    return response.json();
-  })
-  .then((data: any) => {
-    access_token = data.access_token;
-  })
+    .then((response) => {
+      return response.json();
+    })
+    .then((data: any) => {
+      access_token = data.access_token;
+    })
 };
 
 async function setPlayerState() {
