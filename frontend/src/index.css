@@ -7,7 +7,12 @@
   html,
   body {
     @apply p-0 m-0;
+    @apply text-lg;
     font-family: 'Montserrat', sans-serif;
+  }
+
+  img {
+    @apply w-12;
   }
 
 }

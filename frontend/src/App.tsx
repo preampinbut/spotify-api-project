@@ -88,13 +88,13 @@ export default function App() {
 
   return (
     <main className="min-h-screen min-w-full flex justify-center items-center">
-      <div className="p-8 m-8 inline-block border border-1 border-green-600 rounded-lg overflow-hidden">
+      <div className="p-8 m-8 inline-block border-2 border-green-600 rounded-lg overflow-hidden">
         <p>
           <span>Now playing:</span>
           <span className="m-2 inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-full align-middle">
             {playerState.image && (
               <img
-                className="inline w-8 rounded-full"
+                className="inline rounded-full border-2 border-green-600"
                 src={playerState.image}
                 alt={playerState.name}
               />
@@ -125,7 +125,7 @@ export default function App() {
               >
                 {item.image && (
                   <img
-                    className="inline w-8 rounded-full"
+                    className="inline rounded-full border-2 border-green-600"
                     src={item.image}
                     alt={item.name}
                   />
