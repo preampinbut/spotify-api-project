@@ -211,7 +211,14 @@ async function setPlayerState() {
     return;
   }
 
-  playerState = newPlayerState;
+  if (newPlayerState.status === 400 && playerState.artists[0].name !== "Pream Pinbut") {
+    playerState = {
+      ...playerState,
+      status: newPlayerState.status,
+    }
+  } else {
+    playerState = newPlayerState;
+  }
 
   wss.clients.forEach((client) => {
     client.send(JSON.stringify(playerState));

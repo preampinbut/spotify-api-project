@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
 interface PlayerState {
@@ -23,7 +23,6 @@ export default function App() {
       },
     ],
   });
-  let ws = useRef<WebSocket>();
 
   function createWebSocket() {
     let socket = new WebSocket(
@@ -67,46 +66,17 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (ws.current) {
-      ws.current.onmessage = function (event) {
-        let data = event.data as string;
-
-        let command = data.split(" ")[0];
-        if (command === ":pong") {
-          return;
-        }
-
-        console.log(`[message] ${event.data}`);
-
-        let message: PlayerState = JSON.parse(event.data);
-
-        if (
-          message.status === 400 &&
-          playerState.artists[0].name !== "Pream Pinbut"
-        ) {
-          return setPlayerState({
-            ...playerState,
-            status: message.status,
-          });
-        }
-
-        setPlayerState(message);
-      };
-    }
-  }, [playerState]);
-
-  useEffect(() => {
-    ws.current = createWebSocket();
+    let socket = createWebSocket();
 
     const interval = setInterval(() => {
-      if (ws.current!.readyState !== WebSocket.OPEN) {
-        ws.current = createWebSocket();
+      if (socket.readyState !== WebSocket.OPEN) {
+        socket = createWebSocket();
       }
     }, 2000);
 
     const interval2 = setInterval(() => {
-      if (ws.current!.readyState === WebSocket.OPEN) {
-        ws.current!.send(":ping");
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(":ping");
       }
     }, 60000);
 
