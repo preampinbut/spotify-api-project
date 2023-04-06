@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
 interface PlayerState {
@@ -15,7 +15,7 @@ interface Artist {
 
 export default function App() {
   const [playerState, setPlayerState] = useState<PlayerState>({
-    status: 0,
+    status: 500,
     name: "Connecting.",
     artists: [
       {
@@ -23,6 +23,7 @@ export default function App() {
       },
     ],
   });
+  let ws = useRef<WebSocket>();
 
   function createWebSocket() {
     let socket = new WebSocket(
@@ -52,7 +53,7 @@ export default function App() {
     socket.onclose = function () {
       console.log("[close]");
       setPlayerState({
-        status: 0,
+        status: 500,
         name: "Connecting.",
         artists: [
           {
@@ -66,17 +67,46 @@ export default function App() {
   }
 
   useEffect(() => {
-    let socket = createWebSocket();
+    if (ws.current) {
+      ws.current.onmessage = function (event) {
+        let data = event.data as string;
+
+        let command = data.split(" ")[0];
+        if (command === ":pong") {
+          return;
+        }
+
+        console.log(`[message] ${event.data}`);
+
+        let message: PlayerState = JSON.parse(event.data);
+
+        if (
+          message.status === 400 &&
+          playerState.artists[0].name !== "Pream Pinbut"
+        ) {
+          return setPlayerState({
+            ...playerState,
+            status: message.status,
+          });
+        }
+
+        setPlayerState(message);
+      };
+    }
+  }, [playerState]);
+
+  useEffect(() => {
+    ws.current = createWebSocket();
 
     const interval = setInterval(() => {
-      if (socket.readyState !== WebSocket.OPEN) {
-        socket = createWebSocket();
+      if (ws.current!.readyState !== WebSocket.OPEN) {
+        ws.current = createWebSocket();
       }
     }, 2000);
 
     const interval2 = setInterval(() => {
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.send(":ping");
+      if (ws.current!.readyState === WebSocket.OPEN) {
+        ws.current!.send(":ping");
       }
     }, 60000);
 
@@ -89,6 +119,18 @@ export default function App() {
   return (
     <main className="min-h-screen min-w-full flex justify-center items-center">
       <div className="p-8 m-8 inline-block border-2 border-green-600 rounded-lg overflow-hidden">
+        <p>
+          <span>State:</span>
+          <span className="m-2 inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-full align-middle">
+            <span
+              className={`font-bold ml-2 hover:cursor-pointer ${
+                playerState.status === 500 ? "text-red-600" : "text-green-600"
+              }`}
+            >
+              {playerState.status === 200 ? "Playing" : "Paused"}
+            </span>
+          </span>
+        </p>
         <p>
           <span>Now playing:</span>
           <span className="m-2 inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-full align-middle">
@@ -107,7 +149,7 @@ export default function App() {
             >
               <span
                 className={`font-bold ml-2 hover:cursor-pointer ${
-                  playerState.status !== 200 ? "text-red-600" : "text-green-600"
+                  playerState.status === 500 ? "text-red-600" : "text-green-600"
                 }`}
               >
                 {playerState.name}
@@ -138,7 +180,7 @@ export default function App() {
                 >
                   <span
                     className={`font-bold ml-2 hover:cursor-pointer ${
-                      playerState.status !== 200
+                      playerState.status === 500
                         ? "text-red-600"
                         : "text-green-600"
                     }`}

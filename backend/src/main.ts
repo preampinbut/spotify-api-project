@@ -21,17 +21,7 @@ let playerState: any;
 let debugResponse: any;
 
 wss.on("connection", (ws) => {
-  let response;
-  if (playerState === undefined) {
-    response = JSON.stringify({
-      status: 500,
-      name: "Something is wrong with the server. What possibly happened is I forgot to login.",
-      artists: [{ name: "Pream Pinbut" }]
-    });
-  } else {
-    response = JSON.stringify(playerState);
-  }
-  ws.send(response);
+  ws.send(JSON.stringify(playerState));
 })
 
 app.get("/api/login", (req, res) => {
@@ -77,17 +67,7 @@ app.ws("/api/websocket", (ws, req) => {
 });
 
 app.get("/api/get", async (req, res) => {
-  let response;
-  if (playerState === undefined) {
-    response = JSON.stringify({
-      status: 500,
-      name: "Something is wrong with the server. What possibly happened is I forgot to login.",
-      artists: [{ name: "Pream Pinbut" }]
-    });
-  } else {
-    response = playerState;
-  }
-  res.json(response);
+  res.json(playerState);
 });
 
 app.get("/api/refresh", (req, res) => {
@@ -145,7 +125,7 @@ async function getPlayingState(): Promise<{}> {
     .then(async (data: any) => {
       debugResponse = data;
       if (data.is_playing === false) {
-        return { status: 400, name: "Currently Does Not Playing Any Track", artists: [{ name: "Pream Pinbut" }] };
+        return { status: 400, name: "Does Not Playing Any Track", artists: [{ name: "Pream Pinbut" }] };
       }
 
       let ids = "";
