@@ -132,7 +132,7 @@ export default function App() {
           </span>
         </p>
         <p>
-          <span>Now playing:</span>
+          <span>Name:</span>
           <span className="m-2 inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-full align-middle">
             {playerState.image && (
               <img
