@@ -207,7 +207,8 @@ async function setPlayerState() {
     return;
   }
 
-  if (playerState.name === newPlayerState.name) {
+  if (playerState.status === newPlayerState.status
+    && playerState.name === newPlayerState.name) {
     return;
   }
 
