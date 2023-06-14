@@ -222,6 +222,10 @@ async function refreshAccessToken() {
 }
 
 async function setPlayerState() {
+  if (wss.clients.size === 0) {
+    return;
+  }
+
   let newPlayerState: any = await getPlayingState();
 
   if (playerState === undefined) {
