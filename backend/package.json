@@ -26,5 +26,10 @@
     "express": "^4.18.2",
     "express-ws": "^5.0.2",
     "node-fetch": "2"
+  },
+  "pnpm": {
+    "overrides": {
+      "node-fetch@<2.6.7": ">=2.6.7"
+    }
   }
 }

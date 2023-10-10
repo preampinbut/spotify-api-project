@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  node-fetch@<2.6.7: '>=2.6.7'
+
 dependencies:
   dotenv:
     specifier: ^16.0.3
@@ -15,7 +18,7 @@ dependencies:
     specifier: ^5.0.2
     version: 5.0.2(express@4.18.2)
   node-fetch:
-    specifier: '2'
+    specifier: '>=2.6.7'
     version: 2.7.0
 
 devDependencies:
