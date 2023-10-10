@@ -2,8 +2,8 @@ FROM node:16.17-alpine as dependencies
 
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-RUN yarn install
+COPY package.json pnpm-lock.lock ./
+RUN pnpm install --frozen-lockfile
 
 FROM node:16.17-alpine as builder
 
@@ -16,7 +16,7 @@ ENV VITE_BACKEND_WEBSOCKET=$VITE_BACKEND_WEBSOCKET
 
 COPY . .
 COPY --from=dependencies /app/node_modules ./node_modules
-RUN yarn build
+RUN pnpm build
 
 FROM nginx:alpine
 
