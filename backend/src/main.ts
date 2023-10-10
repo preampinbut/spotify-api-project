@@ -26,6 +26,23 @@ wss.on("connection", (ws) => {
   ws.send(JSON.stringify(playerState));
 });
 
+/**
+ * This is the only route that should be public
+ */
+
+app.ws("/api/websocket", (ws) => {
+  ws.on("message", (data) => {
+    let command = data.toString().split(" ")[0];
+    if (command === ":ping") {
+      ws.send(":pong ปิงหาพ่อมึงอะไอ้สัส");
+    }
+  });
+});
+
+/**
+ * Only restricted the following routes access to some specifig endpoint such as your ip address or local network
+ */
+
 app.get("/api/login", (req, res) => {
   var client_id = process.env.CLIENT_ID;
   var redirect_uri = `${baseUrl}/api/callback`;
@@ -64,27 +81,19 @@ app.get("/api/callback", (req, res) => {
   }
 });
 
-app.ws("/api/websocket", (ws) => {
-  ws.on("message", (data) => {
-    let command = data.toString().split(" ")[0];
-    if (command === ":ping") {
-      ws.send(":pong ปิงหาพ่อมึงอะไอ้สัส");
-    }
-  });
-});
+/**
+ * The following route should be remove or restricted on production
+ */
 
-app.get("/api/get", async (req, res) => {
-  res.json(playerState);
-});
-
-app.get("/api/refresh", (req, res) => {
+app.get("/api/debug/refresh", (req, res) => {
   refreshAccessToken();
   res.json({
     status: 200,
   });
 });
 
-app.get("/api/debug/response", (req, res) => {
+app.get("/api/debug/response", async (req, res) => {
+  await setPlayerState(true);
   res.json(debugResponse);
 });
 
@@ -221,8 +230,8 @@ async function refreshAccessToken() {
     });
 }
 
-async function setPlayerState() {
-  if (wss.clients.size === 0) {
+async function setPlayerState(force = false) {
+  if (wss.clients.size === 0 && force === false) {
     return;
   }
 
