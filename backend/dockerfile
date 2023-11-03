@@ -1,11 +1,15 @@
-FROM node:16.17-alpine as dependencies
+FROM node:16.17-alpine as base
+
+RUN yarn global install pnpm
+
+FROM base as dependencies
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.lock ./
+COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
-FROM node:16.17-alpine as builder
+FROM base as builder
 
 WORKDIR /app
 
