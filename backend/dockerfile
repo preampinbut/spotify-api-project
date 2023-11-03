@@ -1,6 +1,6 @@
 FROM node:16.17-alpine as base
 
-RUN yarn global install pnpm
+RUN yarn global add pnpm
 
 FROM base as dependencies
 
