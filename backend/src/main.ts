@@ -5,11 +5,8 @@ dotenv.config();
 import fetch from "node-fetch";
 import { randomBytes } from "crypto";
 import express from "express";
-import expressWs from "express-ws";
 
-const ews = expressWs(express());
-const wss = ews.getWss();
-const app = ews.app;
+const app = express();
 const port = process.env.PORT || 8888;
 
 const baseUrl = `${process.env.ENDPOINT}`;
@@ -21,21 +18,29 @@ let access_token: string;
 let refresh_token: string;
 let playerState: any;
 let debugResponse: any;
-
-wss.on("connection", (ws) => {
-  ws.send(JSON.stringify(playerState));
-});
+let client: number;
 
 /**
  * This is the only route that should be public
  */
 
-app.ws("/api/websocket", (ws) => {
-  ws.on("message", (data) => {
-    let command = data.toString().split(" ")[0];
-    if (command === ":ping") {
-      ws.send(":pong ปิงหาพ่อมึงอะไอ้สัส");
-    }
+app.get("/api/stream", (req, res) => {
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  client += 1;
+  res.write(JSON.stringify(playerState));
+  let interval = setInterval(() => {
+    res.write(JSON.stringify(playerState));
+  }, 1000 * 3);
+
+  res.on("close", () => {
+    client -= 1;
+    clearInterval(interval);
+    res.end();
   });
 });
 
@@ -153,7 +158,7 @@ async function getPlayingState(): Promise<{}> {
           name: "Does Not Playing Any Track",
           artists: [
             {
-              name: "Pream Pinbut",
+              name: process.env.FALLBACK_NAME,
             },
           ],
         };
@@ -201,7 +206,7 @@ async function getPlayingState(): Promise<{}> {
         name: "Something is wrong with the server. What possibly happened is I forgot to login.",
         artists: [
           {
-            name: "Pream Pinbut",
+            name: process.env.FALLBACK_NAME,
           },
         ],
       };
@@ -231,7 +236,7 @@ async function refreshAccessToken() {
 }
 
 async function setPlayerState(force = false) {
-  if (wss.clients.size === 0 && force === false) {
+  if (client === 0 && force === false) {
     return;
   }
 
@@ -239,10 +244,6 @@ async function setPlayerState(force = false) {
 
   if (playerState === undefined) {
     playerState = newPlayerState;
-
-    wss.clients.forEach((client) => {
-      client.send(JSON.stringify(playerState));
-    });
 
     return;
   }
@@ -256,7 +257,7 @@ async function setPlayerState(force = false) {
 
   if (
     newPlayerState.status === 400 &&
-    playerState.artists[0].name !== "Pream Pinbut"
+    playerState.artists[0].name !== process.env.FALLBACK_NAME
   ) {
     playerState = {
       ...playerState,
@@ -265,10 +266,6 @@ async function setPlayerState(force = false) {
   } else {
     playerState = newPlayerState;
   }
-
-  wss.clients.forEach((client) => {
-    client.send(JSON.stringify(playerState));
-  });
 }
 
 setInterval(setPlayerState, 1000 * 3);

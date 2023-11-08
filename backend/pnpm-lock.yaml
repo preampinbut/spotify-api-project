@@ -11,9 +11,6 @@ dependencies:
   express:
     specifier: ^4.18.2
     version: 4.18.2
-  express-ws:
-    specifier: ^5.0.2
-    version: 5.0.2(express@4.18.2)
   node-fetch:
     specifier: '>=2.6.7'
     version: 2.7.0
@@ -22,9 +19,6 @@ devDependencies:
   '@types/express':
     specifier: ^4.17.17
     version: 4.17.18
-  '@types/express-ws':
-    specifier: ^3.0.1
-    version: 3.0.2
   '@types/node':
     specifier: ^18.13.0
     version: 18.18.4
@@ -199,14 +193,6 @@ packages:
       '@types/send': 0.17.2
     dev: true
 
-  /@types/express-ws@3.0.2:
-    resolution: {integrity: sha512-aEQja6rD/8DHFKqyNm9wwc/0/ZU2nQz2TMTWZgW9fRg7SOegYPJ/hOFKh+NPQC5CEo82QZxMZX4GDG54wp48kg==}
-    dependencies:
-      '@types/express': 4.17.18
-      '@types/express-serve-static-core': 4.17.37
-      '@types/ws': 8.5.6
-    dev: true
-
   /@types/express@4.17.18:
     resolution: {integrity: sha512-Sxv8BSLLgsBYmcnGdGjjEjqET2U+AKAdCRODmMiq02FgjwuV75Ut85DRpvFjyw/Mk0vgUOliGRU0UUmuuZHByQ==}
     dependencies:
@@ -259,12 +245,6 @@ packages:
     dependencies:
       '@types/http-errors': 2.0.2
       '@types/mime': 3.0.2
-      '@types/node': 18.18.4
-    dev: true
-
-  /@types/ws@8.5.6:
-    resolution: {integrity: sha512-8B5EO9jLVCy+B58PLHvLDuOD8DRVMgQzq8d55SjLCOn9kqGyqOvy27exVaTio1q1nX5zLu8/6N0n2ThSxOM6tg==}
-    dependencies:
       '@types/node': 18.18.4
     dev: true
 
@@ -723,19 +703,6 @@ packages:
   /etag@1.8.1:
     resolution: {integrity: sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==}
     engines: {node: '>= 0.6'}
-    dev: false
-
-  /express-ws@5.0.2(express@4.18.2):
-    resolution: {integrity: sha512-0uvmuk61O9HXgLhGl3QhNSEtRsQevtmbL94/eILaliEADZBHZOQUAiHFrGPrgsjikohyrmSG5g+sCfASTt0lkQ==}
-    engines: {node: '>=4.5.0'}
-    peerDependencies:
-      express: ^4.0.0 || ^5.0.0-alpha.1
-    dependencies:
-      express: 4.18.2
-      ws: 7.5.9
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
     dev: false
 
   /express@4.18.2:
@@ -1582,19 +1549,6 @@ packages:
   /wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
     dev: true
-
-  /ws@7.5.9:
-    resolution: {integrity: sha512-F+P9Jil7UiSKSkppIiD94dN07AwvFixvLIj1Og1Rl9GGMuNipJnV9JzjD6XuqmAeiswGvUmNLjr5cFuXwNS77Q==}
-    engines: {node: '>=8.3.0'}
-    peerDependencies:
-      bufferutil: ^4.0.1
-      utf-8-validate: ^5.0.2
-    peerDependenciesMeta:
-      bufferutil:
-        optional: true
-      utf-8-validate:
-        optional: true
-    dev: false
 
   /yallist@4.0.0:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}

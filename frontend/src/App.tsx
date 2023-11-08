@@ -14,6 +14,7 @@ interface Artist {
 }
 
 export default function App() {
+  const [isStreaming, setIsStreaming] = useState(false);
   const [playerState, setPlayerState] = useState<PlayerState>({
     status: 500,
     name: "Connecting.",
@@ -24,33 +25,14 @@ export default function App() {
     ],
   });
 
-  function createWebSocket() {
-    let socket = new WebSocket(
-      `${import.meta.env.VITE_BACKEND_WEBSOCKET}/api/websocket`
-    );
+  function startStream() {
+    let endpoint = `${import.meta.env.VITE_BACKEND_ENDPOINT}/api/stream`;
 
-    socket.onopen = function () {
-      console.log("[open]");
-    };
+    setIsStreaming(true);
 
-    socket.onmessage = function (event) {
-      let data = event.data as string;
-
-      let command = data.split(" ")[0];
-      if (command === ":pong") {
-        return;
-      }
-
-      console.log(`[message] ${event.data}`);
-      setPlayerState(JSON.parse(event.data));
-    };
-
-    socket.onerror = function () {
-      console.log("[error]");
-    };
-
-    socket.onclose = function () {
-      console.log("[close]");
+    function errorHandler(err: any) {
+      console.error(err);
+      setIsStreaming(false);
       setPlayerState({
         status: 500,
         name: "Connecting.",
@@ -60,31 +42,45 @@ export default function App() {
           },
         ],
       });
-    };
+    }
 
-    return socket;
+    fetch(endpoint)
+      .then((response) => {
+        const stream = response.body;
+        const reader = stream?.getReader();
+        function read() {
+          reader
+            ?.read()
+            .then(({ value, done }) => {
+              if (done) {
+                throw new Error("What is done? How is that possible?");
+              }
+              const data = new TextDecoder().decode(value);
+              console.log(data);
+              setPlayerState(JSON.parse(data));
+              read();
+            })
+            .catch((err) => {
+              errorHandler(err);
+            });
+        }
+        read();
+      })
+      .catch((err) => {
+        errorHandler(err);
+      });
   }
 
   useEffect(() => {
-    let socket = createWebSocket();
-
-    const interval = setInterval(() => {
-      if (socket.readyState !== WebSocket.OPEN) {
-        socket = createWebSocket();
+    let interval = setInterval(() => {
+      if (!isStreaming) {
+        startStream();
       }
-    }, 2000);
-
-    const interval2 = setInterval(() => {
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.send(":ping");
-      }
-    }, 60000);
-
+    }, 3000);
     return () => {
       clearInterval(interval);
-      clearInterval(interval2);
     };
-  }, []);
+  }, [isStreaming]);
 
   return (
     <main className="min-h-screen min-w-full flex justify-center items-center">
