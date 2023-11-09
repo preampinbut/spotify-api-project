@@ -20,8 +20,8 @@ rename `.env.example` to `.env`
 To start the backend
 
 ```bash
-npm install
-npm dev
+pnpm install
+pnpm dev
 ```
 
 This will start the backend on `http://localhost:8888`.
@@ -29,13 +29,13 @@ This will start the backend on `http://localhost:8888`.
 To start the frontend
 
 ```bash
-npm install
-npm dev
+pnpm install
+pnpm dev
 ```
 
 This will start the frontend on `http://localhost:3000`.
 
-In the frontend code, the backend endpoint is set to `http://localhost:8888` and the backend WebSocket is set to `ws://localhost:8888`.
+In the frontend code, the backend endpoint is set to `http://localhost:8888`.
 
 # Container
 
@@ -43,7 +43,7 @@ In the frontend code, the backend endpoint is set to `http://localhost:8888` and
 To build the frontend container with the required environment variables, you can use the following command:
 
 ```bash
-docker build --build-arg VITE_BACKEND_ENDPOINT=http://localhost:8888 --build-arg VITE_BACKEND_WEBSOCKET=ws://localhost:8888 -t your-frontend-image-name:your-frontend-image-tag .
+docker build --build-arg VITE_BACKEND_ENDPOINT=http://localhost:8888 -t your-frontend-image-name:your-frontend-image-tag .
 ```
 
 Make sure to replace `your-frontend-image-name` and `your-frontend-image-tag` with the actual name and tag of your frontend Docker image.
@@ -58,7 +58,6 @@ services:
       context: .
       args:
         VITE_BACKEND_ENDPOINT: http://backend-service:8888
-        VITE_BACKEND_WEBSOCKET: ws://backend-service:8888
 ```
 
 ## Backend
@@ -67,7 +66,8 @@ This backend container does not requires any step to build container but do requ
 `CLIENT_ID`: This is the client ID for the authentication service.\
 `CLIENT_SECRET`: This is the client secret for the authentication service.\
 `ENDPOINT`: This is the endpoint for the backend service.\
-`PORT`: This is the port number that the backend service will listen on.
+`PORT`: This is the port number that the backend service will listen on. \
+`FALLBACK_NAME`: This is the name to show on api error fallback.
 
 ### Kubernetes Deployment
 To deploy this backend container in a Kubernetes cluster, you can use the following configuration:
@@ -99,6 +99,8 @@ spec:
           value: http://backend-service:8888
         - name: PORT
           value: "8888"
+        - name: FALLBACK_NAME
+          value: "John Doe"
 ```
 
 Make sure to replace `your-image-name` and `your-image-tag` with the actual name and tag of your Docker image, and `your-client-id` and `your-client-secret` with the actual values for your authentication service.
@@ -106,7 +108,7 @@ Make sure to replace `your-image-name` and `your-image-tag` with the actual name
 ### Docker
 
 ```bash
-docker run -e CLIENT_ID=your-client-id -e CLIENT_SECRET=your-client-secret -e ENDPOINT=http://localhost:8888 -e PORT=8888 your-image-name:your-image-tag
+docker run -e CLIENT_ID=your-client-id -e CLIENT_SECRET=your-client-secret -e ENDPOINT=http://localhost:8888 -e PORT=8888 -e FALLBACK_NAME='John Doe' your-image-name:your-image-tag
 ```
 
 Again, make sure to replace `your-client-id` and `your-client-secret` with the actual values for your authentication service, and `your-image-name` and `your-image-tag` with the actual name and tag of your Docker image.
