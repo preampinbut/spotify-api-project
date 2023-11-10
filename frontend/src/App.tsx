@@ -72,6 +72,10 @@ export default function App() {
   }
 
   useEffect(() => {
+    startStream();
+  }, []);
+
+  useEffect(() => {
     let interval = setInterval(() => {
       if (!isStreaming) {
         startStream();
@@ -93,7 +97,11 @@ export default function App() {
                 playerState.status === 500 ? "text-red-600" : "text-green-600"
               }`}
             >
-              {playerState.status === 200 ? "Playing" : "Paused"}
+              {playerState.status === 200
+                ? "Playing"
+                : playerState.status === 204
+                ? "Paused"
+                : "Connecting."}
             </span>
           </span>
         </p>

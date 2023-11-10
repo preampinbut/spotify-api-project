@@ -154,7 +154,7 @@ async function getPlayingState(): Promise<{}> {
       debugResponse = data;
       if (data.is_playing === false) {
         return {
-          status: 400,
+          status: 204,
           name: "Does Not Playing Any Track",
           artists: [
             {
