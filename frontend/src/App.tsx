@@ -72,6 +72,19 @@ export default function App() {
   }
 
   useEffect(() => {
+    fetch(`${import.meta.env.VITE_BACKEND_ENDPOINT}/api/status`, {
+      method: "GET",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(response.statusText);
+        }
+        return response.json();
+      })
+      .then((data: PlayerState) => {
+        setPlayerState(data);
+      })
+      .catch(console.error);
     startStream();
   }, []);
 
