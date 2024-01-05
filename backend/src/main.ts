@@ -5,9 +5,12 @@ dotenv.config();
 import fetch from "node-fetch";
 import { randomBytes } from "crypto";
 import express from "express";
+import cors from "cors";
 
 const app = express();
 const port = process.env.PORT || 8888;
+
+app.use(cors());
 
 const baseUrl = `${process.env.ENDPOINT}`;
 const auth = Buffer.from(
@@ -23,6 +26,10 @@ let client: number;
 /**
  * This is the only route that should be public
  */
+
+app.get("/api/status", (req, res) => {
+  res.status(200).json(playerState);
+});
 
 app.get("/api/stream", (req, res) => {
   res.setHeader("Cache-Control", "no-cache");
