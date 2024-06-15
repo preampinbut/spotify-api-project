@@ -87,9 +87,7 @@ app.get("/api/callback", (req, res) => {
     );
   } else {
     getAccessToken(code as string);
-    res.json({
-      status: 200,
-    });
+    res.redirect(302, `${baseUrl}`);
   }
 });
 
