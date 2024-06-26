@@ -248,7 +248,9 @@ async function refreshAccessToken() {
     })
     .then((data: any) => {
       access_token = data.access_token;
-      refresh_token = data.refresh_token;
+      if (data.refresh_token) {
+        refresh_token = data.refresh_token;
+      }
     });
 }
 
