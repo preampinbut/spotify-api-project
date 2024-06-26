@@ -14,7 +14,7 @@ app.use(cors());
 
 const baseUrl = `${process.env.ENDPOINT}`;
 const auth = Buffer.from(
-  process.env.CLIENT_ID + ":" + process.env.CLIENT_SECRET
+  process.env.CLIENT_ID + ":" + process.env.CLIENT_SECRET,
 ).toString("base64");
 
 let access_token: string;
@@ -27,11 +27,11 @@ let client: number;
  * This is the only route that should be public
  */
 
-app.get("/api/status", (req, res) => {
+app.get("/api/status", (_req, res) => {
   res.status(200).json(playerState);
 });
 
-app.get("/api/stream", (req, res) => {
+app.get("/api/stream", (_req, res) => {
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -55,7 +55,7 @@ app.get("/api/stream", (req, res) => {
  * Only restricted the following routes access to some specifig endpoint such as your ip address or local network
  */
 
-app.get("/api/login", (req, res) => {
+app.get("/api/login", (_req, res) => {
   var client_id = process.env.CLIENT_ID;
   var redirect_uri = `${baseUrl}/api/callback`;
 
@@ -70,7 +70,7 @@ app.get("/api/login", (req, res) => {
         scope: scope,
         redirect_uri: redirect_uri,
         state: state,
-      }).toString()
+      }).toString(),
   );
 });
 
@@ -83,7 +83,7 @@ app.get("/api/callback", (req, res) => {
       "/#" +
         JSON.stringify({
           error: "state_mismatch",
-        })
+        }),
     );
   } else {
     getAccessToken(code as string);
@@ -95,19 +95,25 @@ app.get("/api/callback", (req, res) => {
  * The following route should be remove or restricted on production
  */
 
-app.get("/api/debug/refresh", (req, res) => {
+app.get("/api/debug/refresh", (_req, res) => {
   refreshAccessToken();
   res.json({
     status: 200,
   });
 });
 
-app.get("/api/debug/response", async (req, res) => {
+app.get("/api/debug/response", async (_req, res) => {
   await setPlayerState(true);
   res.json(debugResponse);
 });
 
-app.listen(port);
+app.listen(port, () => {
+  console.log("Start Interval SetPlayerState");
+  setInterval(setPlayerState, 1000 * 3);
+
+  console.log("Start Interval RefreshAccessToken");
+  setInterval(refreshAccessToken, 1000 * 60 * 30);
+});
 
 function getAccessToken(code: string) {
   let headersList = {
@@ -208,7 +214,8 @@ async function getPlayingState(): Promise<{}> {
       console.log(e);
       return {
         status: 500,
-        name: "Something is wrong with the server. What possibly happened is I forgot to login.",
+        name:
+          "Something is wrong with the server. What possibly happened is I forgot to login.",
         artists: [
           {
             name: process.env.FALLBACK_NAME,
@@ -237,6 +244,7 @@ async function refreshAccessToken() {
     })
     .then((data: any) => {
       access_token = data.access_token;
+      refresh_token = data.refresh_token;
     });
 }
 
@@ -272,7 +280,3 @@ async function setPlayerState(force = false) {
     playerState = newPlayerState;
   }
 }
-
-setInterval(setPlayerState, 1000 * 3);
-
-setInterval(refreshAccessToken, 1000 * 60 * 30);
