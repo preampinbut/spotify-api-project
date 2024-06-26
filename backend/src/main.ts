@@ -104,7 +104,11 @@ app.get("/api/debug/refresh", (_req, res) => {
 
 app.get("/api/debug/response", async (_req, res) => {
   await setPlayerState(true);
-  res.json(debugResponse);
+  res.json({
+    access_token,
+    refresh_token,
+    ...debugResponse,
+  });
 });
 
 app.listen(port, () => {
