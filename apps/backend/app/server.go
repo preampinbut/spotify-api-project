@@ -28,7 +28,9 @@ func (server *Server) StartOAuth2Server(listener net.Listener, session *Session,
 	})
 	go func() {
 		server.s.Handler = api
-		server.s.Serve(listener)
+		if err := server.s.Serve(listener); err != nil {
+			logrus.WithError(err).Fatalf("failed to start server")
+		}
 	}()
 }
 
