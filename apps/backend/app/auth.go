@@ -39,7 +39,7 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request, s *Session, done ch
 	}
 	if st := r.FormValue("state"); st != state {
 		http.NotFound(w, r)
-		logrus.Fatalf("State mismatch: %s != %s\n", st, state)
+		logrus.Fatalf("State mismatch: %s != %s", st, state)
 	}
 
 	s.client = spotify.New(s.auth.Client(r.Context(), tok))

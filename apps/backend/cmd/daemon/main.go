@@ -20,7 +20,7 @@ import (
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		logrus.WithError(err).Fatalf("failed to load config\n")
+		logrus.WithError(err).Fatalf("failed to load config")
 	}
 
 	token, _ := config.LoadCredentials()
@@ -36,7 +36,7 @@ func main() {
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
 	if err != nil {
-		logrus.WithError(err).Fatalf("failed to create listener\n")
+		logrus.WithError(err).Fatalf("failed to create listener")
 	}
 
 	// if no token existed we halt here login first
@@ -44,7 +44,7 @@ func main() {
 		done := make(chan struct{})
 		server.StartOAuth2Server(listener, done)
 		url := app.AuthURL(session)
-		logrus.Infof("%s\n", url)
+		logrus.Infof("%s", url)
 		<-done
 	}
 
@@ -52,7 +52,7 @@ func main() {
 		// sleep for 3 seconds to make sure that player state have data before starting
 		time.Sleep(3 * time.Second)
 		if err = server.StartServer(listener); err != nil {
-			logrus.WithError(err).Fatalf("failed to start server\n")
+			logrus.WithError(err).Fatalf("failed to start server")
 		}
 	}()
 

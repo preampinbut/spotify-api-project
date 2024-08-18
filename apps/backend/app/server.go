@@ -34,7 +34,7 @@ func (server *Server) StartOAuth2Server(listener net.Listener, done chan struct{
 	go func() {
 		server.s.Handler = api
 		if err := server.s.Serve(listener); err != nil {
-			logrus.WithError(err).Fatalf("failed to start server\n")
+			logrus.WithError(err).Fatalf("failed to start server")
 		}
 	}()
 }
