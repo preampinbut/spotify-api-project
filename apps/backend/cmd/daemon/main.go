@@ -11,6 +11,7 @@ import (
 	"backend/config"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
@@ -38,6 +39,7 @@ func main() {
 		logrus.WithError(err).Fatalf("failed to create listener\n")
 	}
 
+	// if no token existed we halt here login first
 	if token == nil {
 		done := make(chan struct{})
 		server.StartOAuth2Server(listener, done)
@@ -47,6 +49,8 @@ func main() {
 	}
 
 	go func() {
+		// sleep for 3 seconds to make sure that player state have data before starting
+		time.Sleep(3 * time.Second)
 		if err = server.StartServer(listener); err != nil {
 			logrus.WithError(err).Fatalf("failed to start server\n")
 		}
