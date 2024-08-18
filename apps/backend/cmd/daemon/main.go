@@ -9,35 +9,36 @@ package main
 import (
 	"backend/app"
 	"backend/config"
-	"context"
 	"fmt"
+	"net"
 
 	"github.com/sirupsen/logrus"
-	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 )
 
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		logrus.Fatal(err)
+		logrus.WithError(err).Fatalf("failed to load config")
 	}
+
 	auth := app.NewAuth(spotifyauth.WithClientID(cfg.ClientId), spotifyauth.WithRedirectURL(config.RedirectURI), spotifyauth.WithScopes(spotifyauth.ScopeUserReadPrivate, spotifyauth.ScopeUserReadPlaybackState))
 	session := app.NewSession(cfg, auth)
+	server := app.NewServer(session)
+
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
+	if err != nil {
+		logrus.WithError(err).Fatalf("failed to create listener")
+	}
+
 	done := make(chan int)
-	app.NewOAuth2Server(session, done)
+	server.StartOAuth2Server(listener, session, done)
 	url := app.AuthURL(session)
-	fmt.Println(url)
+	logrus.Infof("%s", url)
 
 	<-done
 
-	session.WithClient(func(ctx context.Context, client *spotify.Client) error {
-		user, err := client.CurrentUser(ctx)
-		if err != nil {
-			logrus.WithError(err).Errorf("could not get current user")
-			return err
-		}
-		logrus.Infof("Current User: %s\n", user.DisplayName)
-		return nil
-	})
+	if err = server.StartServer(listener); err != nil {
+		logrus.WithError(err).Fatalf("failed to start server")
+	}
 }

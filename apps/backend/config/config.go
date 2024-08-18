@@ -16,6 +16,7 @@ const (
 
 type ConfigType struct {
 	ClientId string `yaml:"client_id"`
+	Port     int    `yaml:"port"`
 }
 
 type Credentials struct {

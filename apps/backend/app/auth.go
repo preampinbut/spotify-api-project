@@ -1,8 +1,6 @@
 package app
 
 import (
-	"fmt"
-	"net"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
@@ -45,13 +43,6 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request, s *Session, done ch
 
 	s.client = spotify.New(s.auth.Client(r.Context(), tok))
 	done <- 1
-}
 
-func NewOAuth2Server(session *Session, done chan int) {
-	lis, _ := net.Listen("tcp", fmt.Sprintf(":%d", 8888))
-	http.HandleFunc("/api/callback", func(w http.ResponseWriter, r *http.Request) {
-		CallbackHandler(w, r, session, done)
-		lis.Close()
-	})
-	go http.Serve(lis, nil)
+	_, _ = w.Write([]byte("success"))
 }
