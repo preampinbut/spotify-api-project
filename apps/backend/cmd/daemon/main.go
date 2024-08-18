@@ -23,7 +23,7 @@ func main() {
 	}
 
 	auth := app.NewAuth(spotifyauth.WithClientID(cfg.ClientId), spotifyauth.WithRedirectURL(config.RedirectURI), spotifyauth.WithScopes(spotifyauth.ScopeUserReadPrivate, spotifyauth.ScopeUserReadPlaybackState))
-	session := app.NewSession(cfg, auth)
+	session := app.NewSession(auth)
 	server := app.NewServer(session)
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))

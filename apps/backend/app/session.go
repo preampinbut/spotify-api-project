@@ -1,7 +1,6 @@
 package app
 
 import (
-	"backend/config"
 	"context"
 	"sync"
 
@@ -10,8 +9,6 @@ import (
 )
 
 type Session struct {
-	config *config.ConfigType
-
 	auth *spotifyauth.Authenticator
 
 	ctx        context.Context
@@ -19,10 +16,8 @@ type Session struct {
 	client     *spotify.Client
 }
 
-func NewSession(config *config.ConfigType, auth *spotifyauth.Authenticator) *Session {
+func NewSession(auth *spotifyauth.Authenticator) *Session {
 	return &Session{
-		config: config,
-
 		ctx:        context.Background(),
 		auth:       auth,
 		clientLock: &sync.RWMutex{},
