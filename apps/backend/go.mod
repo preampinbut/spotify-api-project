@@ -5,6 +5,7 @@ go 1.23.0
 require github.com/zmb3/spotify/v2 v2.4.2
 
 require (
+	github.com/gorilla/websocket v1.5.3 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

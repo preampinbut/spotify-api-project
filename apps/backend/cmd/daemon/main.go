@@ -19,26 +19,38 @@ import (
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		logrus.WithError(err).Fatalf("failed to load config")
+		logrus.WithError(err).Fatalf("failed to load config\n")
 	}
 
+	token, _ := config.LoadCredentials()
+
 	auth := app.NewAuth(spotifyauth.WithClientID(cfg.ClientId), spotifyauth.WithRedirectURL(config.RedirectURI), spotifyauth.WithScopes(spotifyauth.ScopeUserReadPrivate, spotifyauth.ScopeUserReadPlaybackState))
-	session := app.NewSession(auth)
+	var session *app.Session
+	if token != nil {
+		session = app.NewSessionWithToken(auth, token)
+	} else {
+		session = app.NewSession(auth)
+	}
 	server := app.NewServer(session)
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
 	if err != nil {
-		logrus.WithError(err).Fatalf("failed to create listener")
+		logrus.WithError(err).Fatalf("failed to create listener\n")
 	}
 
-	done := make(chan int)
-	server.StartOAuth2Server(listener, session, done)
-	url := app.AuthURL(session)
-	logrus.Infof("%s", url)
-
-	<-done
-
-	if err = server.StartServer(listener); err != nil {
-		logrus.WithError(err).Fatalf("failed to start server")
+	if token == nil {
+		done := make(chan struct{})
+		server.StartOAuth2Server(listener, done)
+		url := app.AuthURL(session)
+		logrus.Infof("%s\n", url)
+		<-done
 	}
+
+	go func() {
+		if err = server.StartServer(listener); err != nil {
+			logrus.WithError(err).Fatalf("failed to start server\n")
+		}
+	}()
+
+	server.StartFetchingSpotify()
 }

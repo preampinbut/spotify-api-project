@@ -1,6 +1,7 @@
 package app
 
 import (
+	"backend/config"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
@@ -29,7 +30,7 @@ func AuthURL(session *Session) string {
 	)
 }
 
-func CallbackHandler(w http.ResponseWriter, r *http.Request, s *Session, done chan int) {
+func CallbackHandler(w http.ResponseWriter, r *http.Request, s *Session, done chan struct{}) {
 	tok, err := s.auth.Token(r.Context(), state, r,
 		oauth2.SetAuthURLParam("code_verifier", codeVerifier))
 	if err != nil {
@@ -42,7 +43,8 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request, s *Session, done ch
 	}
 
 	s.client = spotify.New(s.auth.Client(r.Context(), tok))
-	done <- 1
+	config.SaveCredentials(tok)
+	close(done)
 
 	_, _ = w.Write([]byte("success"))
 }

@@ -1,0 +1,11 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "go run ./cmd/daemon/"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
