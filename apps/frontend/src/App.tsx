@@ -1,28 +1,37 @@
+/* eslint-disable camelcase */
 import { useEffect, useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
 interface PlayerState {
-  status: number;
+  is_playing: boolean;
+  item: Item;
+}
+
+interface Item {
   name: string;
-  image?: string;
+  image: string;
   artists: Artist[];
 }
 
 interface Artist {
   name: string;
-  image?: string;
+  image: string;
 }
 
 export default function App() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [playerState, setPlayerState] = useState<PlayerState>({
-    status: 500,
-    name: "Connecting.",
-    artists: [
-      {
-        name: "Connecting.",
-      },
-    ],
+    is_playing: false,
+    item: {
+      name: "Connecting.",
+      image: "",
+      artists: [
+        {
+          name: "Connecting.",
+          image: "",
+        },
+      ],
+    },
   });
 
   function startStream() {
@@ -34,13 +43,17 @@ export default function App() {
       console.error(err);
       setIsStreaming(false);
       setPlayerState({
-        status: 500,
-        name: "Connecting.",
-        artists: [
-          {
-            name: "Connecting.",
-          },
-        ],
+        is_playing: false,
+        item: {
+          name: "Connecting.",
+          image: "",
+          artists: [
+            {
+              name: "Connecting.",
+              image: "",
+            },
+          ],
+        },
       });
     }
 
@@ -72,7 +85,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_ENDPOINT}/api/status`, {
+    fetch(`${import.meta.env.VITE_BACKEND_ENDPOINT}/api/state`, {
       method: "GET",
     })
       .then((response) => {
@@ -107,46 +120,46 @@ export default function App() {
           <span className="m-2 inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-full align-middle">
             <span
               className={`font-bold ml-2 hover:cursor-pointer ${
-                playerState.status === 500 ? "text-red-600" : "text-green-600"
+                isStreaming === false ? "text-red-600" : "text-green-600"
               }`}
             >
-              {playerState.status === 200
+              {isStreaming === false
+                ? "connecting"
+                : playerState.is_playing === true
                 ? "Playing"
-                : playerState.status === 204
-                ? "Paused"
-                : "Connecting."}
+                : playerState.is_playing === false && "Paused"}
             </span>
           </span>
         </p>
         <p>
           <span>Name:</span>
           <span className="m-2 inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-full align-middle">
-            {playerState.image && (
+            {playerState.item.image && (
               <img
                 className="inline rounded-full border-2 border-green-600"
-                src={playerState.image}
-                alt={playerState.name}
+                src={playerState.item.image}
+                alt={playerState.item.name}
               />
             )}
             <CopyToClipboard
-              text={playerState.name}
+              text={playerState.item.name}
               onCopy={() => {
-                alert(`${playerState.name} Copied!`);
+                alert(`${playerState.item.name} Copied!`);
               }}
             >
               <span
                 className={`font-bold ml-2 hover:cursor-pointer ${
-                  playerState.status === 500 ? "text-red-600" : "text-green-600"
+                  isStreaming === false ? "text-red-600" : "text-green-600"
                 }`}
               >
-                {playerState.name}
+                {playerState.item.name}
               </span>
             </CopyToClipboard>
           </span>
         </p>
         <p>
           Artists:
-          {playerState.artists.map((item) => {
+          {playerState.item.artists.map((item) => {
             return (
               <span
                 key={item.name}
@@ -167,9 +180,7 @@ export default function App() {
                 >
                   <span
                     className={`font-bold ml-2 hover:cursor-pointer ${
-                      playerState.status === 500
-                        ? "text-red-600"
-                        : "text-green-600"
+                      isStreaming === false ? "text-red-600" : "text-green-600"
                     }`}
                   >
                     {item.name}
