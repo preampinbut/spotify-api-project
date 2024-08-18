@@ -8,4 +8,5 @@ config.yml
 
 ```yaml
 client_id: "" # your spotify_client id
+port: 8888
 ```
