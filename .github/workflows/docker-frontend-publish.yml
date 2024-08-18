@@ -7,7 +7,7 @@ name: Docker-Frontend
 
 on:
   release:
-    types: [ "publish" ]
+    types: [ "published" ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
 
