@@ -17,7 +17,7 @@ docker-compose.yaml
 ```yaml
 services:
   backend:
-    image: ghcr.com/momozahara/spotify-api-project-backend:latest
+    image: ghcr.io/momozahara/spotify-api-project-backend:latest
     volumes:
       - /path/to/dir:/app/
 ```
