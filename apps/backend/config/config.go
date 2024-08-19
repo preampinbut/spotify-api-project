@@ -9,13 +9,14 @@ import (
 )
 
 const (
-	RedirectURI     = "http://localhost:8888/api/callback"
+	CallbackPath    = "/api/callback"
 	ConfigPath      = "config.yml"
 	CredentialsPath = "credentials.json"
 )
 
 type ConfigType struct {
 	ClientId string `yaml:"client_id"`
+	BaseURL  string `yaml:"base_url"`
 	Port     int    `yaml:"port"`
 }
 

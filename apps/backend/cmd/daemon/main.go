@@ -25,7 +25,7 @@ func main() {
 
 	token, _ := config.LoadCredentials()
 
-	auth := app.NewAuth(spotifyauth.WithClientID(cfg.ClientId), spotifyauth.WithRedirectURL(config.RedirectURI), spotifyauth.WithScopes(spotifyauth.ScopeUserReadPrivate, spotifyauth.ScopeUserReadPlaybackState))
+	auth := app.NewAuth(spotifyauth.WithClientID(cfg.ClientId), spotifyauth.WithRedirectURL(fmt.Sprintf("%s%s", cfg.BaseURL, config.CallbackPath)), spotifyauth.WithScopes(spotifyauth.ScopeUserReadPrivate, spotifyauth.ScopeUserReadPlaybackState))
 	var session *app.Session
 	if token != nil {
 		session = app.NewSessionWithToken(auth, token)

@@ -7,6 +7,7 @@ this is the new backend writen in go using
 config.yml
 
 ```yaml
-client_id: "" # your spotify_client id
+client_id: "" # your spotify client_id
+base_url: "" # http://localhost:3000 https://example.com
 port: 8888
 ```
