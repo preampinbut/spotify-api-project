@@ -31,21 +31,7 @@ func fetchPlayerState(server *Server) {
 			return err
 		}
 		if respState.Item == nil {
-			var playerState PlayerState
-			playerState = PlayerState{
-				IsPlaying: false,
-				Item: PlayerStateItem{
-					Name:  "Pream Pinbut",
-					Image: "",
-					Artists: []PlayerStateItemArtist{
-						{
-							Name:  "Pream Pinbut",
-							Image: "",
-						},
-					},
-				},
-			}
-			server.playerState = &playerState
+			server.playerState.IsPlaying = false
 			return nil
 		}
 		var ids []spotify.ID
