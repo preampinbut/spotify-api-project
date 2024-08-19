@@ -3,8 +3,8 @@ WORKDIR /app
 
 FROM base AS build
 COPY . .
-RUN go build -v -o daemon ./cmd/daemon/
+RUN go build -v -o nodaemon ./cmd/nodaemon/
 
 FROM base
-COPY --from=build /app/daemon /usr/local/bin/app
+COPY --from=build /app/nodaemon /usr/local/bin/app
 CMD [ "app" ]
