@@ -30,6 +30,23 @@ func fetchPlayerState(server *Server) {
 			logrus.WithError(err).Errorf("failed to get player state")
 			return err
 		}
+		if server.playerState == nil {
+			var playerState PlayerState
+			playerState = PlayerState{
+				IsPlaying: false,
+				Item: PlayerStateItem{
+					Name:  "Pream Pinbut",
+					Image: "",
+					Artists: []PlayerStateItemArtist{
+						{
+							Name:  "Pream Pinbut",
+							Image: "",
+						},
+					},
+				},
+			}
+			server.playerState = &playerState
+		}
 		if respState.Item == nil {
 			server.playerState.IsPlaying = false
 			return nil
