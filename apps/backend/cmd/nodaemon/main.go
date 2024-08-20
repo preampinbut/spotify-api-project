@@ -28,8 +28,10 @@ func main() {
 	auth := app.NewAuth(spotifyauth.WithClientID(cfg.ClientId), spotifyauth.WithRedirectURL(fmt.Sprintf("%s%s", cfg.BaseURL, config.CallbackPath)), spotifyauth.WithScopes(spotifyauth.ScopeUserReadPrivate, spotifyauth.ScopeUserReadPlaybackState))
 	var session *app.Session
 	if token != nil {
+		logrus.Infof("credentials existed skip login")
 		session = app.NewSessionWithToken(auth, token)
 	} else {
+		logrus.Warnf("credentials not existed please login")
 		session = app.NewSession(auth)
 	}
 	server := app.NewServer(session)
