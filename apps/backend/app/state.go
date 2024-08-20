@@ -30,6 +30,7 @@ func fetchPlayerState(server *Server) {
 			logrus.WithError(err).Errorf("failed to get player state")
 			return err
 		}
+
 		if server.playerState == nil {
 			var playerState PlayerState
 			playerState = PlayerState{
@@ -47,38 +48,38 @@ func fetchPlayerState(server *Server) {
 			}
 			server.playerState = &playerState
 		}
+
 		if respState.Item == nil {
 			server.playerState.IsPlaying = false
 			return nil
 		}
+
+		// Reuse or clear existing data
+		server.playerState.IsPlaying = respState.CurrentlyPlaying.Playing
+		server.playerState.Item.Name = respState.CurrentlyPlaying.Item.Name
+		server.playerState.Item.Image = respState.CurrentlyPlaying.Item.Album.Images[0].URL
+
+		// Clear existing artists slice
+		server.playerState.Item.Artists = server.playerState.Item.Artists[:0]
+
 		var ids []spotify.ID
 		for _, artist := range respState.CurrentlyPlaying.Item.Artists {
 			ids = append(ids, artist.ID)
 		}
+
 		respArtists, err := client.GetArtists(ctx, ids...)
 		if err != nil {
 			logrus.WithError(err).Errorf("failed to get artists")
 			return err
 		}
 
-		artists := []PlayerStateItemArtist{}
 		for _, artist := range respArtists {
-			artists = append(artists, PlayerStateItemArtist{
+			server.playerState.Item.Artists = append(server.playerState.Item.Artists, PlayerStateItemArtist{
 				Name:  artist.Name,
 				Image: artist.Images[0].URL,
 			})
 		}
-		var playerState PlayerState
-		playerState = PlayerState{
-			IsPlaying: respState.CurrentlyPlaying.Playing,
-			Item: PlayerStateItem{
-				Name:    respState.CurrentlyPlaying.Item.Name,
-				Image:   respState.CurrentlyPlaying.Item.Album.Images[0].URL,
-				Artists: artists,
-			},
-		}
 
-		server.playerState = &playerState
 		return nil
 	})
 }
