@@ -15,10 +15,6 @@ type Server struct {
 	playerState *PlayerState
 }
 
-func (server *Server) PlayerState() PlayerState {
-	return *server.playerState
-}
-
 func NewServer(session *Session) *Server {
 	return &Server{
 		session: session,
