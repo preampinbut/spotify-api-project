@@ -23,8 +23,8 @@ type PlayerState struct {
 	Item      PlayerStateItem `json:"item"`
 }
 
-func fetchPlayerState(server *Server) {
-	server.session.WithClient(func(ctx context.Context, client *spotify.Client) error {
+func fetchPlayerState(server *Server) error {
+	return server.session.WithClient(func(ctx context.Context, client *spotify.Client) error {
 		respState, err := client.PlayerState(ctx)
 		if err != nil {
 			logrus.WithError(err).Errorf("failed to get player state")

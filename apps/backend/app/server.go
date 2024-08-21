@@ -49,7 +49,6 @@ func (server *Server) StartServer(listener net.Listener) error {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Connection", "keep-alive")
-		// handleWebSocket(w, r, server)
 		tick := time.NewTicker(3 * time.Second)
 		defer func() { tick.Stop() }()
 
@@ -70,11 +69,11 @@ func (server *Server) StartFetchingSpotify() {
 	tick := time.NewTicker(6 * time.Second)
 	defer func() { tick.Stop() }()
 
-	fetchPlayerState(server)
+	_ = fetchPlayerState(server)
 	for {
 		select {
 		case <-tick.C:
-			fetchPlayerState(server)
+			_ = fetchPlayerState(server)
 		}
 	}
 }
