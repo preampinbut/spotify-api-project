@@ -8,29 +8,28 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	spotifyauth "github.com/zmb3/spotify/v2/auth"
 )
 
 func main() {
-	cfg, err := config.LoadConfig()
+	appConfig, err := config.LoadConfig()
 	if err != nil {
 		logrus.WithError(err).Fatalf("failed to load config")
 	}
 
 	token, _ := config.LoadCredentials()
 
-	auth := app.NewAuth(spotifyauth.WithClientID(cfg.ClientId), spotifyauth.WithRedirectURL(fmt.Sprintf("%s%s", cfg.BaseURL, config.CallbackPath)), spotifyauth.WithScopes(spotifyauth.ScopeUserReadPrivate, spotifyauth.ScopeUserReadPlaybackState))
 	var session *app.Session
+	cfg := app.NewConfig(appConfig)
 	if token != nil {
 		logrus.Infof("credentials existed skip login")
-		session = app.NewSessionWithToken(auth, token)
+		session = app.NewSessionWithToken(cfg, token)
 	} else {
 		logrus.Warnf("credentials not existed please login")
-		session = app.NewSession(auth)
+		session = app.NewSession(cfg)
 	}
 	server := app.NewServer(session)
 
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", appConfig.Port))
 	if err != nil {
 		logrus.WithError(err).Fatalf("failed to create listener")
 	}
@@ -39,7 +38,7 @@ func main() {
 	if token == nil {
 		done := make(chan struct{})
 		server.StartOAuth2Server(listener, done)
-		url := app.AuthURL(session)
+		url := session.AuthURL()
 		logrus.Infof("%s", url)
 		<-done
 	}

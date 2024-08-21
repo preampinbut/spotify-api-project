@@ -2,48 +2,62 @@ package app
 
 import (
 	"backend/config"
+	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
-	"github.com/zmb3/spotify/v2"
-	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/spotify"
 )
 
-var (
-	state         = "state"
-	codeVerifier  = ""
-	codeChallenge = ""
-)
-
-func NewAuth(opts ...spotifyauth.AuthenticatorOption) *spotifyauth.Authenticator {
-	return spotifyauth.New(opts...)
+type Auth struct {
+	state        string
+	codeVerifier string
 }
 
-func AuthURL(session *Session) string {
-	codeVerifier = oauth2.GenerateVerifier()
-	codeChallenge = oauth2.S256ChallengeFromVerifier(codeVerifier)
+func NewAuth() *Auth {
+	return &Auth{
+		state: "state",
+	}
+}
 
-	return session.auth.AuthURL(state,
-		oauth2.SetAuthURLParam("code_challenge_method", "S256"),
-		oauth2.SetAuthURLParam("code_challenge", codeChallenge),
+func NewConfig(cfg *config.ConfigType) *oauth2.Config {
+	return &oauth2.Config{
+		ClientID:    cfg.ClientId,
+		RedirectURL: fmt.Sprintf("%s%s", cfg.BaseURL, config.CallbackPath),
+		Endpoint:    spotify.Endpoint,
+		Scopes: []string{
+			"user-read-private",
+			"user-read-playback-state",
+		},
+	}
+}
+
+func (session *Session) AuthURL() string {
+	session.auth.codeVerifier = oauth2.GenerateVerifier()
+
+	return session.cfg.AuthCodeURL(session.auth.state,
+		oauth2.AccessTypeOffline,
+		oauth2.S256ChallengeOption(session.auth.codeVerifier),
 	)
 }
 
 func CallbackHandler(w http.ResponseWriter, r *http.Request, s *Session, done chan struct{}) {
-	tok, err := s.auth.Token(r.Context(), state, r,
-		oauth2.SetAuthURLParam("code_verifier", codeVerifier))
+	code := r.URL.Query().Get("code")
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	token, err := s.cfg.Exchange(ctx, code, oauth2.VerifierOption(s.auth.codeVerifier))
 	if err != nil {
-		http.Error(w, "Couldn't get token", http.StatusForbidden)
+		http.Error(w, "Couldn't exchange for token", http.StatusForbidden)
 		logrus.Fatal(err)
 	}
-	if st := r.FormValue("state"); st != state {
-		http.NotFound(w, r)
-		logrus.Fatalf("State mismatch: %s != %s", st, state)
-	}
 
-	s.client = spotify.New(s.auth.Client(r.Context(), tok))
-	config.SaveCredentials(tok)
+	s.token = token
+	config.SaveCredentials(s.token)
+
 	close(done)
 
 	_, _ = w.Write([]byte("success"))

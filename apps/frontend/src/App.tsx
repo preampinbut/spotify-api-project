@@ -9,13 +9,19 @@ interface PlayerState {
 
 interface Item {
   name: string;
-  image: string;
+  album: {
+    images: Image[];
+  };
   artists: Artist[];
 }
 
 interface Artist {
   name: string;
-  image: string;
+  images: Image[];
+}
+
+interface Image {
+  url: string;
 }
 
 export default function App() {
@@ -24,11 +30,21 @@ export default function App() {
     is_playing: false,
     item: {
       name: "Connecting.",
-      image: "",
+      album: {
+        images: [
+          {
+            url: "",
+          },
+        ],
+      },
       artists: [
         {
           name: "Connecting.",
-          image: "",
+          images: [
+            {
+              url: "",
+            },
+          ],
         },
       ],
     },
@@ -46,11 +62,21 @@ export default function App() {
         is_playing: false,
         item: {
           name: "Connecting.",
-          image: "",
+          album: {
+            images: [
+              {
+                url: "",
+              },
+            ],
+          },
           artists: [
             {
               name: "Connecting.",
-              image: "",
+              images: [
+                {
+                  url: "",
+                },
+              ],
             },
           ],
         },
@@ -134,10 +160,10 @@ export default function App() {
         <p>
           <span>Name:</span>
           <span className="m-2 inline-block whitespace-nowrap overflow-hidden text-ellipsis max-w-full align-middle">
-            {playerState.item.image && (
+            {playerState.item.album.images[0].url && (
               <img
                 className="inline rounded-full border-2 border-green-600"
-                src={playerState.item.image}
+                src={playerState.item.album.images[0].url}
                 alt={playerState.item.name}
               />
             )}
@@ -165,10 +191,10 @@ export default function App() {
                 key={item.name}
                 className="inline-block m-2 whitespace-nowrap overflow-hidden text-ellipsis max-w-full align-middle"
               >
-                {item.image && (
+                {item.images[0].url && (
                   <img
                     className="inline rounded-full border-2 border-green-600"
-                    src={item.image}
+                    src={item.images[0].url}
                     alt={item.name}
                   />
                 )}
