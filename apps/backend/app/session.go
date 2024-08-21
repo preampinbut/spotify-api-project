@@ -36,8 +36,12 @@ func NewSessionWithToken(auth *spotifyauth.Authenticator, token *oauth2.Token) *
 
 func (s *Session) WithClient(fn func(ctx context.Context, client *spotify.Client) error) error {
 	s.clientMutex.Lock()
-	defer func() { s.clientMutex.Unlock() }()
 	token, _ := s.client.Token()
 	_ = config.SaveCredentials(token)
-	return fn(context.Background(), s.client)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer func() {
+		s.clientMutex.Unlock()
+		cancel()
+	}()
+	return fn(ctx, s.client)
 }
