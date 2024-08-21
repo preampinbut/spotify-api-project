@@ -41,6 +41,6 @@ func (s *Session) WithClient(fn func(ctx context.Context, client *spotify.Client
 	s.clientMutex.Lock()
 	defer func() { s.clientMutex.Unlock() }()
 	token, _ := s.client.Token()
-	config.SaveCredentials(token)
+	_ = config.SaveCredentials(token)
 	return fn(s.ctx, s.client)
 }
