@@ -53,8 +53,10 @@ func (s *Session) WithClient(fn func(ctx context.Context, client *http.Client) e
 		return err
 	}
 
-	s.token = newToken
-	_ = config.SaveCredentials(s.token)
+	if s.token.AccessToken != newToken.AccessToken {
+		s.token = newToken
+		_ = config.SaveCredentials(s.token)
+	}
 
 	client := s.cfg.Client(ctx, s.token)
 
