@@ -11,18 +11,22 @@ import (
 )
 
 type Session struct {
-	cfg        *oauth2.Config
-	auth       Auth
-	token      *oauth2.Token
-	tokenMutex *sync.RWMutex
+	cfg          *oauth2.Config
+	auth         Auth
+	clients      map[string]bool
+	clientsMutex *sync.RWMutex
+	token        *oauth2.Token
+	tokenMutex   *sync.RWMutex
 }
 
 func NewSession(cfg *oauth2.Config) *Session {
 	return &Session{
-		cfg:        cfg,
-		auth:       Auth{},
-		token:      nil,
-		tokenMutex: &sync.RWMutex{},
+		cfg:          cfg,
+		auth:         Auth{},
+		clients:      make(map[string]bool),
+		clientsMutex: &sync.RWMutex{},
+		token:        nil,
+		tokenMutex:   &sync.RWMutex{},
 	}
 }
 
@@ -35,10 +39,12 @@ func NewSessionWithToken(cfg *oauth2.Config, token *oauth2.Token) *Session {
 		logrus.WithError(err).Fatalf("failed to get token from token source")
 	}
 	return &Session{
-		cfg:        cfg,
-		auth:       Auth{},
-		token:      token,
-		tokenMutex: &sync.RWMutex{},
+		cfg:          cfg,
+		auth:         Auth{},
+		clients:      make(map[string]bool),
+		clientsMutex: &sync.RWMutex{},
+		token:        token,
+		tokenMutex:   &sync.RWMutex{},
 	}
 }
 
@@ -50,6 +56,7 @@ func (s *Session) WithClient(fn func(ctx context.Context, client *http.Client) e
 	newToken, err := tokenSource.Token()
 	if err != nil {
 		logrus.WithError(err).Errorf("failed to refresh token")
+		cancel()
 		return err
 	}
 

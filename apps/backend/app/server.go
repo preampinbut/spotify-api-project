@@ -50,13 +50,28 @@ func (server *Server) StartServer(listener net.Listener) error {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Connection", "keep-alive")
 		tick := time.NewTicker(3 * time.Second)
-		defer func() { tick.Stop() }()
+		clientKey := r.RemoteAddr
+
+		ctx := r.Context()
+
+		defer func() {
+			tick.Stop()
+			server.session.clientsMutex.Lock()
+			delete(server.session.clients, clientKey)
+			server.session.clientsMutex.Unlock()
+		}()
+
+		server.session.clientsMutex.Lock()
+		server.session.clients[clientKey] = true
+		server.session.clientsMutex.Unlock()
 
 		Event.WritePlayerState(w, server)
 		for {
 			select {
 			case <-tick.C:
 				Event.WritePlayerState(w, server)
+			case <-ctx.Done():
+				return
 			}
 		}
 	})
@@ -69,11 +84,11 @@ func (server *Server) StartFetchingSpotify() {
 	tick := time.NewTicker(6 * time.Second)
 	defer func() { tick.Stop() }()
 
-	_ = fetchPlayerState(server)
+	_ = fetchPlayerState(server, true)
 	for {
 		select {
 		case <-tick.C:
-			_ = fetchPlayerState(server)
+			_ = fetchPlayerState(server, false)
 		}
 	}
 }

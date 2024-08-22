@@ -38,15 +38,8 @@ type PlayerState struct {
 	Item      PlayerStateItem `json:"item"`
 }
 
-func fetchPlayerState(server *Server) error {
+func fetchPlayerState(server *Server, force bool) error {
 	return server.session.WithClient(func(ctx context.Context, client *http.Client) error {
-		resp, err := client.Get("https://api.spotify.com/v1/me/player")
-		if err != nil {
-			logrus.WithError(err).Errorf("failed to get player state")
-			return err
-		}
-		defer func() { resp.Body.Close() }()
-
 		if server.playerState == nil {
 			var playerState PlayerState
 			playerState = PlayerState{
@@ -74,6 +67,22 @@ func fetchPlayerState(server *Server) error {
 			}
 			server.playerState = &playerState
 		}
+
+		server.session.clientsMutex.Lock()
+		logrus.Infof("%d", len(server.session.clients))
+		if len(server.session.clients) <= 0 && force == false {
+			server.playerState.IsPlaying = false
+			server.session.clientsMutex.Unlock()
+			return nil
+		}
+		server.session.clientsMutex.Unlock()
+
+		resp, err := client.Get("https://api.spotify.com/v1/me/player")
+		if err != nil {
+			logrus.WithError(err).Errorf("failed to get player state")
+			return err
+		}
+		defer func() { resp.Body.Close() }()
 
 		var respState PlayerState
 		err = json.NewDecoder(resp.Body).Decode(&respState)
