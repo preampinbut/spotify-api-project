@@ -69,7 +69,6 @@ func fetchPlayerState(server *Server, force bool) error {
 		}
 
 		server.session.clientsMutex.Lock()
-		logrus.Infof("%d", len(server.session.clients))
 		if len(server.session.clients) <= 0 && force == false {
 			server.playerState.IsPlaying = false
 			server.session.clientsMutex.Unlock()
