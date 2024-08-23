@@ -41,6 +41,7 @@ func (server *Server) StartServer(listener net.Listener) error {
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Cache-Control", "no-cache")
 			w.Header().Set("Access-Control-Allow-Origin", "*")
+			_ = fetchPlayerState(server, true)
 			Event.WritePlayerState(w, server)
 		},
 	)
