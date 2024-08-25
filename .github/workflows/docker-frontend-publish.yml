@@ -78,7 +78,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            - VITE_BACKEND_ENDPOINT=${{ env.VITE_BACKEND_ENDPOINT }}
+            VITE_BACKEND_ENDPOINT=${{ vars.VITE_BACKEND_ENDPOINT }}
           
 
       # Sign the resulting Docker image digest except on PRs.
