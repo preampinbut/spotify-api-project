@@ -6,11 +6,11 @@ RUN corepack enable
 RUN pnpm install -g pnpm
 WORKDIR /app
 
-FROM base as dependencies
+FROM base AS dependencies
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
-FROM base as builder
+FROM base AS builder
 ARG VITE_BACKEND_ENDPOINT
 ENV VITE_BACKEND_ENDPOINT=$VITE_BACKEND_ENDPOINT
 COPY . .
