@@ -15,6 +15,11 @@ import (
 )
 
 func main() {
+	logrus.SetFormatter(&logrus.TextFormatter{
+		DisableColors:    true,
+		DisableTimestamp: true,
+	})
+
 	databaseURL := os.Getenv("DATABASE_URL")
 	if len(strings.TrimSpace(databaseURL)) == 0 {
 		logrus.Fatalf("DATABASE_URL did not set")
