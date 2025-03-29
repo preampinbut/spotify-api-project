@@ -65,7 +65,7 @@ func main() {
 		done := make(chan struct{})
 		server.StartOAuth2Server(listener, done)
 		url := session.AuthURL()
-		logrus.Infof("%s", url)
+		fmt.Printf("%s", url)
 		<-done
 	}
 

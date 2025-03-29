@@ -53,6 +53,8 @@ func (server *Server) StartServer(listener net.Listener) error {
 		tick := time.NewTicker(3 * time.Second)
 		clientKey := r.RemoteAddr
 
+		logrus.Infof("connection from %s", clientKey)
+
 		ctx := r.Context()
 
 		defer func() {
@@ -72,6 +74,7 @@ func (server *Server) StartServer(listener net.Listener) error {
 			case <-tick.C:
 				Event.WritePlayerState(w, server)
 			case <-ctx.Done():
+				logrus.Infof("%s disconnected", clientKey)
 				return
 			}
 		}
