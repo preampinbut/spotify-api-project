@@ -1,11 +1,18 @@
 package config
 
 import (
-	"encoding/json"
+	"backend/db"
+	"bytes"
+	"context"
+	"encoding/gob"
+	"errors"
+	"fmt"
 	"os"
+	"strconv"
+	"strings"
 
+	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
-	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -20,61 +27,73 @@ type ConfigType struct {
 	Port     int    `yaml:"port"`
 }
 
-type Credentials struct {
-	Data []byte `json:"data"`
-}
-
 func LoadConfig() (*ConfigType, error) {
-	data, err := os.ReadFile(ConfigPath)
+	clientId := os.Getenv("CLIENT_ID")
+	baseURL := os.Getenv("BASE_URL")
+	port := os.Getenv("PORT")
 
+	if len(strings.TrimSpace(clientId)) == 0 || len(strings.TrimSpace(baseURL)) == 0 || len(strings.TrimSpace(port)) == 0 {
+		return nil, errors.New(fmt.Sprintf("required environment CLIENT_ID, BASE_URL, PORT"))
+	}
+
+	iPort, err := strconv.Atoi(port)
 	if err != nil {
 		return nil, err
 	}
 
-	var config ConfigType
-	err = yaml.Unmarshal([]byte(data), &config)
-	if err != nil {
-		return nil, err
+	config := ConfigType{
+		ClientId: clientId,
+		BaseURL:  baseURL,
+		Port:     iPort,
 	}
 
 	return &config, nil
 }
 
-func SaveCredentials(token *oauth2.Token) error {
-	f, err := os.Create(CredentialsPath)
-	if err != nil {
+func SaveCredentials(dbClient *db.PrismaClient, token *oauth2.Token) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer func() {
+		cancel()
+	}()
+
+	var buffer bytes.Buffer
+	encoder := gob.NewEncoder(&buffer)
+	if err := encoder.Encode(token); err != nil {
 		return err
 	}
-	defer func() { _ = f.Close() }()
 
-	tokenData, err := json.Marshal(token)
-	if err != nil {
-		return err
+	config, _ := dbClient.Config.FindFirst().Exec(ctx)
+	if config == nil {
+		dbClient.Config.CreateOne(
+			db.Config.Data.Set(buffer.Bytes()),
+		).Exec(ctx)
+		return nil
 	}
 
-	cred := Credentials{
-		Data: tokenData,
-	}
-
-	return json.NewEncoder(f).Encode(cred)
+	dbClient.Config.FindUnique(
+		db.Config.ID.Equals(config.ID),
+	).Update(
+		db.Config.Data.Set(buffer.Bytes()),
+	).Exec(ctx)
+	return nil
 }
 
-func LoadCredentials() (*oauth2.Token, error) {
-	f, err := os.Open(CredentialsPath)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = f.Close() }()
+func LoadCredentials(dbClient *db.PrismaClient) *oauth2.Token {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer func() {
+		cancel()
+	}()
 
-	var creds Credentials
-	if err := json.NewDecoder(f).Decode(&creds); err != nil {
-		return nil, err
+	config, err := dbClient.Config.FindFirst().Exec(ctx)
+	if err != nil {
+		return nil
 	}
 
 	var token oauth2.Token
-	if err := json.Unmarshal(creds.Data, &token); err != nil {
-		return nil, err
+	decoder := gob.NewDecoder(bytes.NewReader(config.Data))
+	if err = decoder.Decode(&token); err != nil {
+		logrus.WithError(err).Fatalf("failed to decode token")
 	}
 
-	return &token, nil
+	return &token
 }

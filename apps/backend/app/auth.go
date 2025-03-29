@@ -56,7 +56,9 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request, s *Session, done ch
 	}
 
 	s.token = token
-	config.SaveCredentials(s.token)
+	if err = config.SaveCredentials(s.dbClient, s.token); err != nil {
+		logrus.WithError(err).Fatalf("failed to save credentials")
+	}
 
 	close(done)
 

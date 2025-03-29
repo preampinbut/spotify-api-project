@@ -2,6 +2,7 @@ package app
 
 import (
 	"backend/config"
+	"backend/db"
 	"context"
 	"net/http"
 	"sync"
@@ -17,9 +18,10 @@ type Session struct {
 	clientsMutex *sync.RWMutex
 	token        *oauth2.Token
 	tokenMutex   *sync.RWMutex
+	dbClient     *db.PrismaClient
 }
 
-func NewSession(cfg *oauth2.Config) *Session {
+func NewSession(cfg *oauth2.Config, dbClient *db.PrismaClient) *Session {
 	return &Session{
 		cfg:          cfg,
 		auth:         Auth{},
@@ -27,10 +29,11 @@ func NewSession(cfg *oauth2.Config) *Session {
 		clientsMutex: &sync.RWMutex{},
 		token:        nil,
 		tokenMutex:   &sync.RWMutex{},
+		dbClient:     dbClient,
 	}
 }
 
-func NewSessionWithToken(cfg *oauth2.Config, token *oauth2.Token) *Session {
+func NewSessionWithToken(cfg *oauth2.Config, dbClient *db.PrismaClient, token *oauth2.Token) *Session {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tokenSource := cfg.TokenSource(ctx, token)
@@ -45,6 +48,7 @@ func NewSessionWithToken(cfg *oauth2.Config, token *oauth2.Token) *Session {
 		clientsMutex: &sync.RWMutex{},
 		token:        token,
 		tokenMutex:   &sync.RWMutex{},
+		dbClient:     dbClient,
 	}
 }
 
@@ -62,7 +66,9 @@ func (s *Session) WithClient(fn func(ctx context.Context, client *http.Client) e
 
 	if s.token.AccessToken != newToken.AccessToken {
 		s.token = newToken
-		_ = config.SaveCredentials(s.token)
+		if err = config.SaveCredentials(s.dbClient, s.token); err != nil {
+			logrus.WithError(err).Fatalf("failed to save credentials")
+		}
 	}
 
 	client := s.cfg.Client(ctx, s.token)
