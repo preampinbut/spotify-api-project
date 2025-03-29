@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
 import { useEffect, useState } from "react";
-import { CopyToClipboard } from "react-copy-to-clipboard";
 
 interface PlayerState {
   is_playing: boolean;
@@ -8,6 +7,7 @@ interface PlayerState {
 }
 
 interface Item {
+  id: string;
   name: string;
   album: {
     images: Image[];
@@ -16,6 +16,7 @@ interface Item {
 }
 
 interface Artist {
+  id: string;
   name: string;
   images: Image[];
 }
@@ -29,6 +30,7 @@ export default function App() {
   const [playerState, setPlayerState] = useState<PlayerState>({
     is_playing: false,
     item: {
+      id: "",
       name: "Connecting.",
       album: {
         images: [
@@ -39,6 +41,7 @@ export default function App() {
       },
       artists: [
         {
+          id: "",
           name: "Connecting.",
           images: [
             {
@@ -51,16 +54,16 @@ export default function App() {
   });
 
   function startStream() {
-    let endpoint = `${import.meta.env.VITE_BACKEND_ENDPOINT}/api/stream`;
+    const endpoint = `${import.meta.env.VITE_BACKEND_ENDPOINT}/api/stream`;
 
     setIsStreaming(true);
 
-    function errorHandler(err: any) {
-      console.error(err);
+    function errorHandler() {
       setIsStreaming(false);
       setPlayerState({
         is_playing: false,
         item: {
+          id: "",
           name: "Connecting.",
           album: {
             images: [
@@ -71,6 +74,7 @@ export default function App() {
           },
           artists: [
             {
+              id: "",
               name: "Connecting.",
               images: [
                 {
@@ -99,14 +103,14 @@ export default function App() {
               setPlayerState(JSON.parse(data));
               read();
             })
-            .catch((err) => {
-              errorHandler(err);
+            .catch(() => {
+              errorHandler();
             });
         }
         read();
       })
-      .catch((err) => {
-        errorHandler(err);
+      .catch(() => {
+        errorHandler();
       });
   }
 
@@ -128,7 +132,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    let interval = setInterval(() => {
+    const interval = setInterval(() => {
       if (!isStreaming) {
         startStream();
       }
@@ -152,8 +156,8 @@ export default function App() {
               {isStreaming === false
                 ? "connecting"
                 : playerState.is_playing === true
-                ? "Playing"
-                : playerState.is_playing === false && "Paused"}
+                  ? "Playing"
+                  : playerState.is_playing === false && "Paused"}
             </span>
           </span>
         </p>
@@ -167,20 +171,19 @@ export default function App() {
                 alt={playerState.item.name}
               />
             )}
-            <CopyToClipboard
-              text={playerState.item.name}
-              onCopy={() => {
-                alert(`${playerState.item.name} Copied!`);
-              }}
+            <span
+              className={`font-bold ml-2 hover:cursor-pointer ${
+                isStreaming === false ? "text-red-600" : "text-green-600"
+              }`}
             >
-              <span
-                className={`font-bold ml-2 hover:cursor-pointer ${
-                  isStreaming === false ? "text-red-600" : "text-green-600"
-                }`}
+              <a
+                href={`https://open.spotify.com/track/${playerState.item.id}`}
+                target="_blank"
+                rel="noreferrer"
               >
                 {playerState.item.name}
-              </span>
-            </CopyToClipboard>
+              </a>
+            </span>
           </span>
         </p>
         <p>
@@ -198,20 +201,19 @@ export default function App() {
                     alt={item.name}
                   />
                 )}
-                <CopyToClipboard
-                  onCopy={() => {
-                    alert(`${item.name} Copied!`);
-                  }}
-                  text={item.name}
+                <span
+                  className={`font-bold ml-2 hover:cursor-pointer ${
+                    isStreaming === false ? "text-red-600" : "text-green-600"
+                  }`}
                 >
-                  <span
-                    className={`font-bold ml-2 hover:cursor-pointer ${
-                      isStreaming === false ? "text-red-600" : "text-green-600"
-                    }`}
+                  <a
+                    href={`https://open.spotify.com/artist/${item.id}`}
+                    target="_blank"
+                    rel="noreferrer"
                   >
                     {item.name}
-                  </span>
-                </CopyToClipboard>
+                  </a>
+                </span>
               </span>
             );
           })}
