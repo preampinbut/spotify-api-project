@@ -3,6 +3,7 @@ WORKDIR /app
 
 FROM base AS build
 COPY . .
+RUN go run github.com/steebchen/prisma-client-go generate
 RUN go build -v -o nodaemon ./cmd/nodaemon/
 
 FROM base
