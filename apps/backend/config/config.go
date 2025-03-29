@@ -16,9 +16,7 @@ import (
 )
 
 const (
-	CallbackPath    = "/api/callback"
-	ConfigPath      = "config.yml"
-	CredentialsPath = "credentials.json"
+	CallbackPath = "/api/callback"
 )
 
 type ConfigType struct {
