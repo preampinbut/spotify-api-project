@@ -28,6 +28,7 @@ type PlayerStateItemAlbum struct {
 }
 
 type PlayerStateItem struct {
+	ID      string                  `json:"id"`
 	Name    string                  `json:"name"`
 	Artists []PlayerStateItemArtist `json:"artists"`
 	Album   PlayerStateItemAlbum    `json:"album"`
@@ -45,6 +46,7 @@ func fetchPlayerState(server *Server, force bool) error {
 			playerState = PlayerState{
 				IsPlaying: false,
 				Item: PlayerStateItem{
+					ID:   "",
 					Name: "Pream Pinbut",
 					Album: PlayerStateItemAlbum{
 						Images: []PlayerStateItemImage{
@@ -55,6 +57,7 @@ func fetchPlayerState(server *Server, force bool) error {
 					},
 					Artists: []PlayerStateItemArtist{
 						{
+							ID:   "",
 							Name: "Pream Pinbut",
 							Images: []PlayerStateItemImage{
 								{
@@ -95,6 +98,7 @@ func fetchPlayerState(server *Server, force bool) error {
 		}
 
 		server.playerState.IsPlaying = respState.IsPlaying
+		server.playerState.Item.ID = respState.Item.ID
 		server.playerState.Item.Name = respState.Item.Name
 		server.playerState.Item.Album.Images[0].URL = respState.Item.Album.Images[0].URL
 
@@ -131,6 +135,7 @@ func fetchPlayerState(server *Server, force bool) error {
 
 		for _, artist := range artists.Artists {
 			server.playerState.Item.Artists = append(server.playerState.Item.Artists, PlayerStateItemArtist{
+				ID:   artist.ID,
 				Name: artist.Name,
 				Images: []PlayerStateItemImage{
 					{
