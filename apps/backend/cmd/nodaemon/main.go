@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+	logrus.SetOutput(os.Stdout)
 	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableColors:    true,
 		DisableTimestamp: true,
