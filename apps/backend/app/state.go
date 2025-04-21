@@ -75,13 +75,10 @@ func fetchPlayerState(server *Server, force bool) error {
 		clientCount := len(server.session.clients)
 		server.session.clientsMutex.Unlock()
 
-		logrus.Infof("client count: %d", clientCount)
 		if clientCount <= 0 && force == false {
-			logrus.Infof("skip fetching player state")
 			server.playerState.IsPlaying = false
 			return nil
 		}
-		logrus.Infof("fetching player state")
 
 		resp, err := client.Get("https://api.spotify.com/v1/me/player")
 		if err != nil {

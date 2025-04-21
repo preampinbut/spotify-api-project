@@ -69,6 +69,7 @@ func (s *Session) WithClient(fn func(ctx context.Context, client *http.Client) e
 		if err = config.SaveCredentials(s.dbClient, s.token); err != nil {
 			logrus.WithError(err).Fatalf("failed to save credentials")
 		}
+		logrus.Info("credentials updated")
 	}
 
 	client := s.cfg.Client(ctx, s.token)

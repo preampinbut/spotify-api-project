@@ -68,9 +68,8 @@ func main() {
 		url := session.AuthURL()
 		fmt.Printf("%s", url)
 		<-done
+		logrus.Infof("Login Success")
 	}
-
-	logrus.Infof("Login Success")
 
 	go func() {
 		// sleep for 3 seconds to make sure that player state have data before starting
