@@ -87,31 +87,25 @@ export default function App() {
       });
     }
 
-    fetch(endpoint)
-      .then((response) => {
-        const stream = response.body;
-        const reader = stream?.getReader();
-        function read() {
-          reader
-            ?.read()
-            .then(({ value, done }) => {
-              if (done) {
-                throw new Error("What is done? How is that possible?");
-              }
-              const data = new TextDecoder().decode(value);
-              console.log(data);
-              setPlayerState(JSON.parse(data));
-              read();
-            })
-            .catch(() => {
-              errorHandler();
-            });
-        }
-        read();
-      })
-      .catch(() => {
+    const eventSource = new EventSource(endpoint);
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log(data);
+        setPlayerState(data);
+      } catch (error) {
+        console.error("Failed to parse SSE data", error);
         errorHandler();
-      });
+        eventSource.close();
+      }
+    };
+
+    eventSource.onerror = (event) => {
+      console.error("SSE error", event);
+      errorHandler();
+      eventSource.close();
+    };
   }
 
   useEffect(() => {
