@@ -18,6 +18,6 @@ func (eventT) WritePlayerState(w http.ResponseWriter, server *Server) {
 		logrus.WithError(err).Errorf("failed to marshal player state")
 		return
 	}
-	fmt.Fprintf(w, string(resp))
+	fmt.Fprintf(w, "data: %s\n\n", string(resp))
 	w.(http.Flusher).Flush()
 }

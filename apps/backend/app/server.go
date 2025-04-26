@@ -50,6 +50,7 @@ func (server *Server) StartServer(listener net.Listener) error {
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Connection", "keep-alive")
+
 		tick := time.NewTicker(3 * time.Second)
 		clientKey := r.RemoteAddr
 

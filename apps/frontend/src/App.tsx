@@ -55,7 +55,6 @@ export default function App() {
 
   function startStream() {
     const endpoint = `${import.meta.env.VITE_BACKEND_ENDPOINT}/api/stream`;
-
     setIsStreaming(true);
 
     function errorHandler() {
@@ -97,15 +96,15 @@ export default function App() {
       } catch (error) {
         console.error("Failed to parse SSE data", error);
         errorHandler();
-        eventSource.close();
       }
     };
 
     eventSource.onerror = (event) => {
       console.error("SSE error", event);
       errorHandler();
-      eventSource.close();
     };
+
+    return eventSource;
   }
 
   useEffect(() => {
@@ -116,25 +115,21 @@ export default function App() {
         if (!response.ok) {
           throw new Error(response.statusText);
         }
-        return response.json();
+        return response.text();
       })
-      .then((data: PlayerState) => {
+      .then((resp: string) => {
+        const data: PlayerState = JSON.parse(
+          resp.substring("data: ".length, resp.length),
+        );
         setPlayerState(data);
       })
       .catch(console.error);
-    startStream();
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!isStreaming) {
-        startStream();
-      }
-    }, 3000);
+    const eventSource = startStream();
     return () => {
-      clearInterval(interval);
+      eventSource.close();
+      setIsStreaming(false);
     };
-  }, [isStreaming]);
+  }, []);
 
   return (
     <main className="min-h-screen min-w-full flex justify-center items-center">
