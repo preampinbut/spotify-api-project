@@ -46,13 +46,14 @@ func main() {
 	token := config.LoadCredentials(dbClient)
 
 	var session *app.Session
+	var token_err error = nil
 	cfg := app.NewConfig(appConfig)
 
-	logrus.Infof("credentials existed")
-	session, token_err := app.NewSessionWithToken(cfg, dbClient, token)
+	if token != nil {
+		session, token_err = app.NewSessionWithToken(cfg, dbClient, token)
+	}
 
-	if token_err != nil {
-		logrus.Warnf("credentials not existed or revoked please login")
+	if token == nil || token_err != nil {
 		session = app.NewSession(cfg, dbClient)
 	}
 
@@ -64,13 +65,16 @@ func main() {
 	}
 
 	// if no token existed we halt here login first
-	if token_err == nil {
+	if token == nil || token_err != nil {
+		logrus.Warnf("credentials not existed or revoked please login")
 		done := make(chan struct{})
 		server.StartOAuth2Server(listener, done)
 		url := session.AuthURL()
-		fmt.Printf("%s", url)
+		fmt.Printf("%s\n", url)
 		<-done
 		logrus.Infof("Login Success")
+	} else {
+		logrus.Infof("credentials existed skip login")
 	}
 
 	go func() {
