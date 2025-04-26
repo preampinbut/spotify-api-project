@@ -33,13 +33,13 @@ func NewSession(cfg *oauth2.Config, dbClient *db.PrismaClient) *Session {
 	}
 }
 
-func NewSessionWithToken(cfg *oauth2.Config, dbClient *db.PrismaClient, token *oauth2.Token) *Session {
+func NewSessionWithToken(cfg *oauth2.Config, dbClient *db.PrismaClient, token *oauth2.Token) (*Session, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tokenSource := cfg.TokenSource(ctx, token)
 	token, err := tokenSource.Token()
 	if err != nil {
-		logrus.WithError(err).Fatalf("failed to get token from token source")
+		return nil, err
 	}
 	return &Session{
 		cfg:          cfg,
@@ -49,7 +49,7 @@ func NewSessionWithToken(cfg *oauth2.Config, dbClient *db.PrismaClient, token *o
 		token:        token,
 		tokenMutex:   &sync.RWMutex{},
 		dbClient:     dbClient,
-	}
+	}, nil
 }
 
 func (s *Session) WithClient(fn func(ctx context.Context, client *http.Client) error) error {
