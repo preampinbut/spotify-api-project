@@ -94,6 +94,10 @@ func fetchPlayerState(server *Server, force bool) error {
 			return err
 		}
 
+		if server.playerState.Item.ID != respState.Item.ID {
+			logrus.Infof("update song: %s", respState.Item.Name)
+		}
+
 		server.playerState.IsPlaying = respState.IsPlaying
 		server.playerState.Item.ID = respState.Item.ID
 		server.playerState.Item.Name = respState.Item.Name
