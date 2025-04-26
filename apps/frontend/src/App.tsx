@@ -154,7 +154,7 @@ export default function App() {
               }`}
             >
               {isStreaming === false
-                ? "connecting"
+                ? "Connecting"
                 : playerState.is_playing === true
                   ? "Playing"
                   : playerState.is_playing === false && "Paused"}
