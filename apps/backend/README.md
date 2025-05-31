@@ -3,20 +3,11 @@
 this is the new backend writen in go using
 [OAuth2](https://github.com/golang/oauth2)
 
-config.yml
+.env
 
-```yaml
-client_id: "" # your spotify client_id
-base_url: "" # http://localhost:3000 https://example.com
-port: 8888
 ```
-
-docker-compose.yaml
-
-```yaml
-services:
-  backend:
-    image: ghcr.io/momozahara/spotify-api-project-backend:latest
-    volumes:
-      - /path/to/dir:/app/
+BASE_URL= # http://localhost:3000 https://example.com
+CLIENT_ID= # your spotify client_id
+DATABASE_URL= # your database connection string
+PORT=8888
 ```
