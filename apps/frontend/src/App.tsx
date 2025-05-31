@@ -1,30 +1,6 @@
 /* eslint-disable camelcase */
 import { useEffect, useState } from "react";
 
-interface PlayerState {
-  is_playing: boolean;
-  item: Item;
-}
-
-interface Item {
-  id: string;
-  name: string;
-  album: {
-    images: Image[];
-  };
-  artists: Artist[];
-}
-
-interface Artist {
-  id: string;
-  name: string;
-  images: Image[];
-}
-
-interface Image {
-  url: string;
-}
-
 export default function App() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [playerState, setPlayerState] = useState<PlayerState>({
