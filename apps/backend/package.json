@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev": "go run ./cmd/nodaemon/"
+    "dev": "go run ./cmd/nodaemon/",
+    "generate": "go run github.com/preampinbut/gots --output ../frontend/src/types.d.ts ./app/state.go"
   },
   "keywords": [],
   "author": "",
