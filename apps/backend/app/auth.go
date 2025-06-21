@@ -22,7 +22,7 @@ func NewAuth() *Auth {
 	}
 }
 
-func NewConfig(cfg *config.ConfigType) *oauth2.Config {
+func NewConfig(cfg *config.ServerConfig) *oauth2.Config {
 	return &oauth2.Config{
 		ClientID:    cfg.ClientId,
 		RedirectURL: fmt.Sprintf("%s%s", cfg.BaseURL, config.CallbackPath),
@@ -56,7 +56,7 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request, s *Session, done ch
 	}
 
 	s.token = token
-	if err = config.SaveCredentials(s.dbClient, s.token); err != nil {
+	if err = config.SaveCredentials(s.collection, s.token); err != nil {
 		logrus.WithError(err).Fatalf("failed to save credentials")
 	}
 

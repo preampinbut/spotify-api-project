@@ -2,12 +2,12 @@ package app
 
 import (
 	"backend/config"
-	"backend/db"
 	"context"
 	"net/http"
 	"sync"
 
 	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 	"golang.org/x/oauth2"
 )
 
@@ -18,10 +18,11 @@ type Session struct {
 	clientsMutex *sync.RWMutex
 	token        *oauth2.Token
 	tokenMutex   *sync.RWMutex
-	dbClient     *db.PrismaClient
+	dbClient     *mongo.Client
+	collection   *mongo.Collection
 }
 
-func NewSession(cfg *oauth2.Config, dbClient *db.PrismaClient) *Session {
+func NewSession(cfg *oauth2.Config, dbClient *mongo.Client, collection *mongo.Collection) *Session {
 	return &Session{
 		cfg:          cfg,
 		auth:         Auth{},
@@ -30,10 +31,11 @@ func NewSession(cfg *oauth2.Config, dbClient *db.PrismaClient) *Session {
 		token:        nil,
 		tokenMutex:   &sync.RWMutex{},
 		dbClient:     dbClient,
+		collection:   collection,
 	}
 }
 
-func NewSessionWithToken(cfg *oauth2.Config, dbClient *db.PrismaClient, token *oauth2.Token) (*Session, error) {
+func NewSessionWithToken(cfg *oauth2.Config, dbClient *mongo.Client, collection *mongo.Collection, token *oauth2.Token) (*Session, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	tokenSource := cfg.TokenSource(ctx, token)
@@ -49,6 +51,7 @@ func NewSessionWithToken(cfg *oauth2.Config, dbClient *db.PrismaClient, token *o
 		token:        token,
 		tokenMutex:   &sync.RWMutex{},
 		dbClient:     dbClient,
+		collection:   collection,
 	}, nil
 }
 
@@ -66,7 +69,7 @@ func (s *Session) WithClient(fn func(ctx context.Context, client *http.Client) e
 
 	if s.token.AccessToken != newToken.AccessToken {
 		s.token = newToken
-		if err = config.SaveCredentials(s.dbClient, s.token); err != nil {
+		if err = config.SaveCredentials(s.collection, s.token); err != nil {
 			logrus.WithError(err).Fatalf("failed to save credentials")
 		}
 		logrus.Info("credentials updated")

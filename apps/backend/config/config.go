@@ -1,17 +1,18 @@
 package config
 
 import (
-	"backend/db"
 	"bytes"
 	"context"
 	"encoding/gob"
-	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"strings"
 
 	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"golang.org/x/oauth2"
 )
 
@@ -19,19 +20,48 @@ const (
 	CallbackPath = "/api/callback"
 )
 
-type ConfigType struct {
-	ClientId string `yaml:"client_id"`
-	BaseURL  string `yaml:"base_url"`
-	Port     int    `yaml:"port"`
+type Cache struct {
+	Data []byte `json:"data"`
 }
 
-func LoadConfig() (*ConfigType, error) {
-	clientId := os.Getenv("CLIENT_ID")
-	baseURL := os.Getenv("BASE_URL")
-	port := os.Getenv("PORT")
+type ServerConfig struct {
+	ClientId   string
+	BaseURL    string
+	Port       int
 
-	if len(strings.TrimSpace(clientId)) == 0 || len(strings.TrimSpace(baseURL)) == 0 || len(strings.TrimSpace(port)) == 0 {
-		return nil, errors.New(fmt.Sprintf("required environment CLIENT_ID, BASE_URL, PORT"))
+	DatabaseURL string
+	Username string
+	Password string
+	Database   string
+	Collection string
+}
+
+func LoadConfig() (*ServerConfig, error) {
+
+	databaseURL := os.Getenv("DB_URL")
+	databaseURLT := len(strings.TrimSpace(databaseURL)) == 0
+	username := os.Getenv("DB_USERNAME")
+	usernameT := len(strings.TrimSpace(databaseURL)) == 0
+	password := os.Getenv("DB_PASSWORD")
+	passwordT := len(strings.TrimSpace(databaseURL)) == 0
+	database := os.Getenv("DB")
+	databaseT := len(strings.TrimSpace(database)) == 0
+	collection := os.Getenv("DB_COLLECTION")
+	collectionT := len(strings.TrimSpace(collection)) == 0
+
+	if databaseURLT || usernameT || passwordT || databaseT || collectionT {
+		logrus.Fatalf("DB_URL | DB_USERNAME | DB_PASSWORD | DB | DB_COLLECTION did not set")
+	}
+
+	clientId := os.Getenv("CLIENT_ID")
+	clientIdT := len(strings.TrimSpace(clientId)) == 0
+	baseURL := os.Getenv("BASE_URL")
+	baseURLT := len(strings.TrimSpace(baseURL)) == 0
+	port := os.Getenv("PORT")
+	portT := len(strings.TrimSpace(port)) == 0
+
+	if clientIdT || baseURLT || portT {
+		return nil, fmt.Errorf("CLIENT_ID | BASE_URL | PORT did not set")
 	}
 
 	iPort, err := strconv.Atoi(port)
@@ -39,16 +69,22 @@ func LoadConfig() (*ConfigType, error) {
 		return nil, err
 	}
 
-	config := ConfigType{
-		ClientId: clientId,
-		BaseURL:  baseURL,
-		Port:     iPort,
+	config := ServerConfig{
+		ClientId:   clientId,
+		BaseURL:    baseURL,
+		Port:       iPort,
+
+		DatabaseURL: databaseURL,
+		Username: username,
+		Password: password,
+		Database:   database,
+		Collection: collection,
 	}
 
 	return &config, nil
 }
 
-func SaveCredentials(dbClient *db.PrismaClient, token *oauth2.Token) error {
+func SaveCredentials(collection *mongo.Collection, token *oauth2.Token) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer func() {
 		cancel()
@@ -60,35 +96,46 @@ func SaveCredentials(dbClient *db.PrismaClient, token *oauth2.Token) error {
 		return err
 	}
 
-	config, _ := dbClient.Config.FindFirst().Exec(ctx)
-	if config == nil {
-		dbClient.Config.CreateOne(
-			db.Config.Data.Set(buffer.Bytes()),
-		).Exec(ctx)
+	var cache Cache
+	update := bson.M{
+		"$set": bson.M{"data": buffer.Bytes()},
+	}
+	opts := options.FindOneAndUpdate().SetUpsert(false).SetReturnDocument(options.After)
+
+	err := collection.FindOneAndUpdate(ctx, bson.M{}, update, opts).Decode(&cache)
+	if err == mongo.ErrNoDocuments {
+		cache.Data = buffer.Bytes()
+		_, insertErr := collection.InsertOne(ctx, cache)
+		if insertErr != nil {
+			logrus.WithError(insertErr).Error("failed to insert cache into collection")
+			return insertErr
+		}
 		return nil
+	} else if err != nil {
+		logrus.WithError(err).Error("failed during FindOneAndUpdate")
+		return err
 	}
 
-	dbClient.Config.FindUnique(
-		db.Config.ID.Equals(config.ID),
-	).Update(
-		db.Config.Data.Set(buffer.Bytes()),
-	).Exec(ctx)
 	return nil
 }
 
-func LoadCredentials(dbClient *db.PrismaClient) *oauth2.Token {
+func LoadCredentials(collection *mongo.Collection) *oauth2.Token {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer func() {
 		cancel()
 	}()
 
-	config, err := dbClient.Config.FindFirst().Exec(ctx)
-	if err != nil {
+	var cache Cache
+
+	err := collection.FindOne(ctx, bson.D{}).Decode(&cache)
+	if err == mongo.ErrNoDocuments {
 		return nil
+	} else if err != nil {
+		logrus.WithError(err).Fatalf("failed during FindOne")
 	}
 
 	var token oauth2.Token
-	decoder := gob.NewDecoder(bytes.NewReader(config.Data))
+	decoder := gob.NewDecoder(bytes.NewReader(cache.Data))
 	if err = decoder.Decode(&token); err != nil {
 		logrus.WithError(err).Fatalf("failed to decode token")
 	}

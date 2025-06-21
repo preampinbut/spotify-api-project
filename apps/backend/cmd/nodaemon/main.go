@@ -3,15 +3,16 @@ package main
 import (
 	"backend/app"
 	"backend/config"
-	"backend/db"
+	"context"
 	"fmt"
 	"net"
 	"os"
-	"strings"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 func main() {
@@ -21,40 +22,41 @@ func main() {
 		DisableTimestamp: true,
 	})
 
-	databaseURL := os.Getenv("DATABASE_URL")
-	if len(strings.TrimSpace(databaseURL)) == 0 {
-		logrus.Fatalf("DATABASE_URL did not set")
-	}
-
-	dbClient := db.NewClient(
-		db.WithDatasourceURL(databaseURL),
-	)
-	if err := dbClient.Connect(); err != nil {
-		logrus.WithError(err).Fatalf("could not connect to database")
-	}
-	defer func() {
-		if err := dbClient.Disconnect(); err != nil {
-			logrus.WithError(err).Fatalf("failed when try to disconnect from database")
-		}
-	}()
-
 	appConfig, err := config.LoadConfig()
 	if err != nil {
 		logrus.WithError(err).Fatalf("failed to load config")
 	}
 
-	token := config.LoadCredentials(dbClient)
+	authOption := options.Credential {
+		Username: appConfig.Username,
+		Password: appConfig.Password,
+	}
+	options := options.Client().ApplyURI(appConfig.DatabaseURL).SetAuth(authOption)
+
+	dbClient, err := mongo.Connect(options)
+
+	if err != nil {
+		logrus.WithError(err).Fatalf("could not connect to database")
+	}
+	defer func() {
+		if err := dbClient.Disconnect(context.Background()); err != nil {
+			logrus.WithError(err).Fatalf("failed when try to disconnect from database")
+		}
+	}()
+
+	collection := dbClient.Database(appConfig.Database).Collection(appConfig.Collection)
+	token := config.LoadCredentials(collection)
 
 	var session *app.Session
 	var token_err error = nil
 	cfg := app.NewConfig(appConfig)
 
 	if token != nil {
-		session, token_err = app.NewSessionWithToken(cfg, dbClient, token)
+		session, token_err = app.NewSessionWithToken(cfg, dbClient, collection, token)
 	}
 
 	if token == nil || token_err != nil {
-		session = app.NewSession(cfg, dbClient)
+		session = app.NewSession(cfg, dbClient, collection)
 	}
 
 	server := app.NewServer(session)
