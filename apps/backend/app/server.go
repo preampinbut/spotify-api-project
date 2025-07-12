@@ -87,13 +87,11 @@ func (server *Server) StartServer(listener net.Listener) error {
 
 func (server *Server) StartFetchingSpotify() {
 	tick := time.NewTicker(6 * time.Second)
-	defer func() { tick.Stop() }()
+	defer tick.Stop()
 
 	_ = fetchPlayerState(server, true)
-	for {
-		select {
-		case <-tick.C:
-			_ = fetchPlayerState(server, false)
-		}
+
+	for range tick.C {
+		_ = fetchPlayerState(server, false)
 	}
 }
