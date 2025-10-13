@@ -68,6 +68,7 @@ export default function App() {
       try {
         const data = JSON.parse(event.data);
         console.log(data);
+        setIsStreaming(true);
         setPlayerState(data);
       } catch (error) {
         console.error("Failed to parse SSE data", error);
@@ -103,7 +104,6 @@ export default function App() {
     const eventSource = startStream();
     return () => {
       eventSource.close();
-      setIsStreaming(false);
     };
   }, []);
 
