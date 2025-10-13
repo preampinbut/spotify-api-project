@@ -118,7 +118,6 @@ func fetchPlayerState(server *Server, force bool) error {
 
 		q := req.URL.Query()
 		q.Set("ids", strings.Join(ids, ","))
-
 		req.URL.RawQuery = q.Encode()
 		resp, err = client.Do(req)
 		if err != nil {
@@ -135,12 +134,16 @@ func fetchPlayerState(server *Server, force bool) error {
 		}
 
 		for _, artist := range artists.Artists {
+			var imageURL string
+			if len(artist.Images) > 0 {
+				imageURL = artist.Images[0].URL
+			}
 			server.playerState.Item.Artists = append(server.playerState.Item.Artists, PlayerStateItemArtist{
 				ID:   artist.ID,
 				Name: artist.Name,
 				Images: []PlayerStateItemImage{
 					{
-						URL: artist.Images[0].URL,
+						URL: imageURL,
 					},
 				},
 			})
