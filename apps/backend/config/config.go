@@ -25,32 +25,23 @@ type Cache struct {
 }
 
 type ServerConfig struct {
-	ClientId   string
-	BaseURL    string
-	Port       int
+	ClientId string
+	BaseURL  string
+	Port     int
 
-	DatabaseURL string
-	Username string
-	Password string
-	Database   string
-	Collection string
+	ConnectionString string
+	Collection       string
 }
 
 func LoadConfig() (*ServerConfig, error) {
 
-	databaseURL := os.Getenv("DB_URL")
-	databaseURLT := len(strings.TrimSpace(databaseURL)) == 0
-	username := os.Getenv("DB_USERNAME")
-	usernameT := len(strings.TrimSpace(databaseURL)) == 0
-	password := os.Getenv("DB_PASSWORD")
-	passwordT := len(strings.TrimSpace(databaseURL)) == 0
-	database := os.Getenv("DB")
-	databaseT := len(strings.TrimSpace(database)) == 0
-	collection := os.Getenv("DB_COLLECTION")
+	connectionString := os.Getenv("MONGO_CONNECTION_STRING")
+	connectionStringT := len(strings.TrimSpace(connectionString)) == 0
+	collection := os.Getenv("MONGO_COLLECTION")
 	collectionT := len(strings.TrimSpace(collection)) == 0
 
-	if databaseURLT || usernameT || passwordT || databaseT || collectionT {
-		logrus.Fatalf("DB_URL | DB_USERNAME | DB_PASSWORD | DB | DB_COLLECTION did not set")
+	if connectionStringT || collectionT {
+		logrus.Fatalf("DB_CONNECTION_STRING | DB_COLLECTION did not set")
 	}
 
 	clientId := os.Getenv("CLIENT_ID")
@@ -70,15 +61,12 @@ func LoadConfig() (*ServerConfig, error) {
 	}
 
 	config := ServerConfig{
-		ClientId:   clientId,
-		BaseURL:    baseURL,
-		Port:       iPort,
+		ClientId: clientId,
+		BaseURL:  baseURL,
+		Port:     iPort,
 
-		DatabaseURL: databaseURL,
-		Username: username,
-		Password: password,
-		Database:   database,
-		Collection: collection,
+		ConnectionString: connectionString,
+		Collection:       collection,
 	}
 
 	return &config, nil

@@ -13,6 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/x/mongo/driver/connstring"
 )
 
 func main() {
@@ -27,13 +28,11 @@ func main() {
 		logrus.WithError(err).Fatalf("failed to load config")
 	}
 
-	authOption := options.Credential {
-		Username: appConfig.Username,
-		Password: appConfig.Password,
+	cs, err := connstring.ParseAndValidate(appConfig.ConnectionString)
+	if err != nil {
+		logrus.WithError(err).Fatalf("connection string is invalid")
 	}
-	options := options.Client().ApplyURI(appConfig.DatabaseURL).SetAuth(authOption)
-
-	dbClient, err := mongo.Connect(options)
+	dbClient, err := mongo.Connect(options.Client().ApplyURI(cs.Original))
 
 	if err != nil {
 		logrus.WithError(err).Fatalf("could not connect to database")
@@ -44,7 +43,7 @@ func main() {
 		}
 	}()
 
-	collection := dbClient.Database(appConfig.Database).Collection(appConfig.Collection)
+	collection := dbClient.Database(cs.Database).Collection(appConfig.Collection)
 	token := config.LoadCredentials(collection)
 
 	var session *app.Session
