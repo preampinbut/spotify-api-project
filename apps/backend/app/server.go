@@ -51,7 +51,7 @@ func (server *Server) StartServer(listener net.Listener) error {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Connection", "keep-alive")
 
-		tick := time.NewTicker(3 * time.Second)
+		tick := time.NewTicker(1 * time.Second)
 		clientKey := r.RemoteAddr
 
 		logrus.Infof("connection from %s", clientKey)
