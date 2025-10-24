@@ -1,14 +1,22 @@
 @import "tailwindcss";
 
+@theme {
+  --color-primary-1: oklch(100% 0 0);
+
+  --color-secondary-1: oklch(14.5% 0 0);
+  --color-secondary-2: oklch(20.5% 0 0);
+  --color-secondary-3: oklch(26.9% 0 0);
+
+  --color-warning-1: oklch(57.7% 0.245 27.325);
+}
+
 html,
 body {
   @apply p-0 m-0;
   @apply text-lg;
   font-family: 'Montserrat', sans-serif;
 
+  @apply text-primary-1;
   @apply text-sm lg:text-lg;
-}
-
-img {
-  @apply w-12 h-12;
+  @apply bg-secondary-1;
 }
