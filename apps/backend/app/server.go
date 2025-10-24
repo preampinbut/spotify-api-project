@@ -12,7 +12,7 @@ type Server struct {
 	session *Session
 	s       *http.Server
 
-	playerState *PlayerState
+	playerState *PlaybackState
 }
 
 func NewServer(session *Session) *Server {
@@ -51,7 +51,7 @@ func (server *Server) StartServer(listener net.Listener) error {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Connection", "keep-alive")
 
-		tick := time.NewTicker(3 * time.Second)
+		tick := time.NewTicker(1 * time.Second)
 		clientKey := r.RemoteAddr
 
 		logrus.Infof("connection from %s", clientKey)
@@ -86,7 +86,7 @@ func (server *Server) StartServer(listener net.Listener) error {
 }
 
 func (server *Server) StartFetchingSpotify() {
-	tick := time.NewTicker(6 * time.Second)
+	tick := time.NewTicker(3 * time.Second)
 	defer tick.Stop()
 
 	_ = fetchPlayerState(server, true)

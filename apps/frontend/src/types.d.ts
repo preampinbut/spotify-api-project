@@ -1,30 +1,31 @@
-interface PlayerState {
+interface PlaybackState {
   is_playing: boolean;
-  item: PlayerStateItem;
+  progress_ms: number;
+  item: TrackObject;
 }
 
-interface PlayerStateItem {
+interface TrackObject {
   id: string;
   name: string;
-  artists: PlayerStateItemArtist[];
-  album: PlayerStateItemAlbum;
+  artists: Artist[];
+  album: Album;
+  duration_ms: number;
 }
 
-interface PlayerStateItemAlbum {
-  images: PlayerStateItemImage[];
+interface Album {
+  images: Image[];
 }
 
-interface PlayerStateItemArtist {
+interface Artist {
   id: string;
   name: string;
-  images: PlayerStateItemImage[];
+  images: Image[];
 }
 
-interface PlayerStateItemImage {
+interface Image {
   url: string;
 }
 
-interface ResponseTypeArtists {
-  artists: PlayerStateItemArtist[];
+interface Artists {
+  artists: Artist[];
 }
-
