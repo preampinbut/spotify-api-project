@@ -9,57 +9,59 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type PlayerStateItemImage struct {
+type Images struct {
 	URL string `json:"url"`
 }
 
-type PlayerStateItemArtist struct {
-	ID     string                 `json:"id"`
-	Name   string                 `json:"name"`
-	Images []PlayerStateItemImage `json:"images"`
+type Artist struct {
+	ID     string   `json:"id"`
+	Name   string   `json:"name"`
+	Images []Images `json:"images"`
 }
 
-type ResponseTypeArtists struct {
-	Artists []PlayerStateItemArtist `json:"artists"`
+type ResponseArtist struct {
+	Artists []Artist `json:"artists"`
 }
 
-type PlayerStateItemAlbum struct {
-	Images []PlayerStateItemImage `json:"images"`
+type Album struct {
+	Images []Images `json:"images"`
 }
 
-type PlayerStateItem struct {
-	ID      string                  `json:"id"`
-	Name    string                  `json:"name"`
-	Artists []PlayerStateItemArtist `json:"artists"`
-	Album   PlayerStateItemAlbum    `json:"album"`
+type TrackObject struct {
+	ID         string   `json:"id"`
+	Name       string   `json:"name"`
+	Artists    []Artist `json:"artists"`
+	Album      Album    `json:"album"`
+	DurationMs int      `json:"duration_ms"`
 }
 
-type PlayerState struct {
-	IsPlaying bool            `json:"is_playing"`
-	Item      PlayerStateItem `json:"item"`
+type PlaybackState struct {
+	IsPlaying  bool        `json:"is_playing"`
+	ProgressMs int         `json:"progress_ms"`
+	Item       TrackObject `json:"item"`
 }
 
 func fetchPlayerState(server *Server, force bool) error {
 	return server.session.WithClient(func(ctx context.Context, client *http.Client) error {
 		if server.playerState == nil {
-			var playerState PlayerState
-			playerState = PlayerState{
+			var playerState PlaybackState
+			playerState = PlaybackState{
 				IsPlaying: false,
-				Item: PlayerStateItem{
+				Item: TrackObject{
 					ID:   "",
 					Name: "Pream Pinbut",
-					Album: PlayerStateItemAlbum{
-						Images: []PlayerStateItemImage{
+					Album: Album{
+						Images: []Images{
 							{
 								URL: "",
 							},
 						},
 					},
-					Artists: []PlayerStateItemArtist{
+					Artists: []Artist{
 						{
 							ID:   "",
 							Name: "Pream Pinbut",
-							Images: []PlayerStateItemImage{
+							Images: []Images{
 								{
 									URL: "",
 								},
@@ -87,7 +89,7 @@ func fetchPlayerState(server *Server, force bool) error {
 		}
 		defer func() { resp.Body.Close() }()
 
-		var respState PlayerState
+		var respState PlaybackState
 		err = json.NewDecoder(resp.Body).Decode(&respState)
 		if err != nil {
 			server.playerState.IsPlaying = false
@@ -99,9 +101,12 @@ func fetchPlayerState(server *Server, force bool) error {
 		}
 
 		server.playerState.IsPlaying = respState.IsPlaying
+		server.playerState.ProgressMs = respState.ProgressMs
+
 		server.playerState.Item.ID = respState.Item.ID
 		server.playerState.Item.Name = respState.Item.Name
 		server.playerState.Item.Album.Images[0].URL = respState.Item.Album.Images[0].URL
+		server.playerState.Item.DurationMs = respState.Item.DurationMs
 
 		server.playerState.Item.Artists = server.playerState.Item.Artists[:0]
 
@@ -126,7 +131,7 @@ func fetchPlayerState(server *Server, force bool) error {
 		}
 		defer func() { resp.Body.Close() }()
 
-		var artists ResponseTypeArtists
+		var artists ResponseArtist
 		err = json.NewDecoder(resp.Body).Decode(&artists)
 		if err != nil {
 			logrus.WithError(err).Errorf("failed to decode response body")
@@ -138,10 +143,10 @@ func fetchPlayerState(server *Server, force bool) error {
 			if len(artist.Images) > 0 {
 				imageURL = artist.Images[0].URL
 			}
-			server.playerState.Item.Artists = append(server.playerState.Item.Artists, PlayerStateItemArtist{
+			server.playerState.Item.Artists = append(server.playerState.Item.Artists, Artist{
 				ID:   artist.ID,
 				Name: artist.Name,
-				Images: []PlayerStateItemImage{
+				Images: []Images{
 					{
 						URL: imageURL,
 					},

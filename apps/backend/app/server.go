@@ -12,7 +12,7 @@ type Server struct {
 	session *Session
 	s       *http.Server
 
-	playerState *PlayerState
+	playerState *PlaybackState
 }
 
 func NewServer(session *Session) *Server {
