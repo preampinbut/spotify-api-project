@@ -95,7 +95,12 @@ export default function usePlaybackState() {
     es.onmessage = (event) => {
       try {
         const data: PlaybackState = JSON.parse(event.data);
-        setPlaybackState(data);
+        setPlaybackState((prev) => {
+          if (Math.abs(prev.progress_ms - data.progress_ms) >= 3000) {
+            return data;
+          }
+          return prev;
+        });
       } catch (err) {
         console.error("Failed to parse SSE data:", err);
       }
