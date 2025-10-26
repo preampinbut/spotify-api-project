@@ -26,6 +26,7 @@ type ResponseArtist struct {
 }
 
 type Album struct {
+	ID     string   `json:"id"`
 	Images []Images `json:"images"`
 }
 
@@ -116,7 +117,9 @@ func fetchPlayerState(server *Server, force bool) error {
 		// Update track item details.
 		server.playerState.Item.ID = respState.Item.ID
 		server.playerState.Item.Name = respState.Item.Name
+
 		// Album images array is assumed to exist and have at least one element.
+		server.playerState.Item.Album.ID = respState.Item.Album.ID
 		server.playerState.Item.Album.Images[0].URL = respState.Item.Album.Images[0].URL
 		server.playerState.Item.DurationMs = respState.Item.DurationMs
 
