@@ -7,7 +7,7 @@ export default function App() {
   // --- Playback Indicator Logic ---
   const indicator = playbackState.is_playing ? (
     // State: Playing
-    <span className="ml-0 text-primary-1 text-sm flex items-center">
+    <>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         className="h-4 w-4 mr-1"
@@ -22,10 +22,10 @@ export default function App() {
         />
       </svg>
       Playing
-    </span>
+    </>
   ) : (
     // State: Paused
-    <span className="ml-0 text-primary-1 text-sm flex items-center">
+    <>
       <svg
         xmlns="http://www.w3.org/2000/svg"
         className="h-4 w-4 mr-1"
@@ -40,7 +40,7 @@ export default function App() {
         />
       </svg>
       Paused
-    </span>
+    </>
   );
 
   const albumImageUrl = playbackState.item.album.images?.[0]?.url;
@@ -50,6 +50,7 @@ export default function App() {
     <img
       src={albumImageUrl}
       className="w-full h-full object-cover"
+      draggable={false}
     />
   ) : (
     // Placeholder div when album art is unavailable.
@@ -59,8 +60,8 @@ export default function App() {
   );
 
   return (
-    <main className="min-h-screen flex justify-center items-center bg-secondary-1">
-      <div className="md:w-3xl p-6 bg-secondary-2 rounded-2xl shadow-lg">
+    <main className="min-h-screen flex justify-center items-center bg-secondary-1 cursor-default select-none">
+      <div className="w-vw md:w-3xl p-6 bg-secondary-2 rounded-2xl shadow-lg">
         <div className="flex flex-col md:flex-row gap-6 items-center w-full">
           {/* Album Cover */}
           <div className="w-full md:w-1/2 aspect-square overflow-hidden rounded-xl">
@@ -68,7 +69,7 @@ export default function App() {
           </div>
 
           {/* Song Info */}
-          <div className="flex flex-col justify-center text-center md:text-left gap-2 w-full md:w-1/2 overflow-hidden">
+          <div className="flex flex-col text-center md:text-left gap-2 w-full md:w-1/2 overflow-hidden">
             <p className="text-xl font-semibold truncate">
               {playbackState.item.name}
             </p>
@@ -77,7 +78,9 @@ export default function App() {
             </p>
 
             {/* Playing State */}
-            {indicator}
+            <span className="justify-center md:justify-normal text-center md:text-left ml-0 text-primary-1 text-sm flex items-center">
+              {indicator}
+            </span>
 
             {/* Progress Bar */}
             <div className="mt-4">
