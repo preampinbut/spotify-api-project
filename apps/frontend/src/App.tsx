@@ -61,7 +61,7 @@ export default function App() {
 
   return (
     <main className="min-h-screen flex justify-center items-center bg-secondary-1 cursor-default select-none">
-      <div className="w-vw md:w-3xl p-6 bg-secondary-2 rounded-2xl shadow-lg">
+      <div className="w-svw md:w-3xl p-6 bg-secondary-2 rounded-2xl shadow-lg">
         <div className="flex flex-col md:flex-row gap-6 items-center w-full">
           {/* Album Cover */}
           <div className="w-full md:w-1/2 aspect-square overflow-hidden rounded-xl">
