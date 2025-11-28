@@ -11,6 +11,7 @@ const defaultPlaybackState: PlaybackState = {
     // eslint-disable-next-line camelcase
     duration_ms: 0,
     album: {
+      id: "",
       images: [
         {
           url: "",
@@ -97,6 +98,15 @@ export default function usePlaybackState() {
         const data: PlaybackState = JSON.parse(event.data);
         setPlaybackState((prev) => {
           if (Math.abs(prev.progress_ms - data.progress_ms) >= 3000) {
+            // eslint-disable-next-line camelcase
+            prev.progress_ms = data.progress_ms;
+          }
+          if (
+            prev.is_playing !== data.is_playing ||
+            prev.item.id !== data.item.id
+          ) {
+            // eslint-disable-next-line camelcase
+            data.progress_ms = prev.progress_ms;
             return data;
           }
           return prev;
