@@ -74,7 +74,9 @@ export default function App() {
               {playbackState.item.name}
             </p>
             <p className="text-md text-gray-300 truncate">
-              {playbackState.item.artists.map((a) => a.name).join(", ")}
+              {playbackState.item.artists.length === 1
+                ? playbackState.item.artists[0].name
+                : playbackState.item.artists.map((a) => a.name).join(", ")}
             </p>
 
             {/* Playing State */}
@@ -88,11 +90,7 @@ export default function App() {
                 <div
                   className="h-1 bg-primary-1 rounded-full transition-all duration-300"
                   style={{
-                    width: `${
-                      (playbackState.progress_ms /
-                        playbackState.item.duration_ms) *
-                      100
-                    }%`,
+                    width: `${(playbackState.progress_ms / playbackState.item.duration_ms) * 100}%`,
                   }}
                 ></div>
               </div>
