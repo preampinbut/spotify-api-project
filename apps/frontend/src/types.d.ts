@@ -1,7 +1,26 @@
+interface Album {
+  id: string;
+  images: Images[];
+}
+
+interface Artist {
+  id: string;
+  name: string;
+  images: Images[];
+}
+
+interface Images {
+  url: string;
+}
+
 interface PlaybackState {
   is_playing: boolean;
   progress_ms: number;
   item: TrackObject;
+}
+
+interface ResponseArtist {
+  artists: Artist[];
 }
 
 interface TrackObject {
@@ -10,22 +29,4 @@ interface TrackObject {
   artists: Artist[];
   album: Album;
   duration_ms: number;
-}
-
-interface Album {
-  images: Image[];
-}
-
-interface Artist {
-  id: string;
-  name: string;
-  images: Image[];
-}
-
-interface Image {
-  url: string;
-}
-
-interface Artists {
-  artists: Artist[];
 }
