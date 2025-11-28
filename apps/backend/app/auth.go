@@ -1,10 +1,12 @@
 package app
 
 import (
-	"backend/config" // Package for application configuration and constants.
 	"context"
 	"fmt"
 	"net/http"
+
+	"backend/config" // Package for application configuration and constants.
+	"backend/util"   // Package for utility functions, including random string generation.
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
@@ -20,17 +22,21 @@ type Auth struct {
 
 // NewAuth initializes a new Auth struct with a default state value.
 func NewAuth() *Auth {
+	state, err := util.GenerateRandomString(16)
+	if err != nil {
+		logrus.WithError(err).Fatalf("failed to generate random state string")
+	}
 	// The 'state' parameter is used to maintain state between the request and the callback
 	// and to prevent cross-site request forgery (CSRF).
 	return &Auth{
-		state: "state", // Should be replaced with a securely generated random string in a production environment.
+		state: state,
 	}
 }
 
 // NewConfig creates and returns an *oauth2.Config, pre-configured for the Spotify API.
 func NewConfig(cfg *config.ServerConfig) *oauth2.Config {
 	return &oauth2.Config{
-		ClientID:    cfg.ClientId,
+		ClientID: cfg.ClientID,
 		// RedirectURL is the endpoint the authorization server (Spotify) sends the user back to
 		// after they grant or deny permission.
 		RedirectURL: fmt.Sprintf("%s%s", cfg.BaseURL, config.CallbackPath),
@@ -44,15 +50,14 @@ func NewConfig(cfg *config.ServerConfig) *oauth2.Config {
 }
 
 // AuthURL generates the URL to which the user is redirected to initiate the OAuth flow.
-func (session *Session) AuthURL() string {
+func (s *Session) AuthURL() string {
 	// Generate a new code verifier for PKCE before generating the URL.
-	session.auth.codeVerifier = oauth2.GenerateVerifier()
+	s.auth.codeVerifier = oauth2.GenerateVerifier()
 
-	return session.cfg.AuthCodeURL(
-		session.auth.state,
-		oauth2.AccessTypeOffline,
+	return s.cfg.AuthCodeURL(
+		s.auth.state,
 		// S256ChallengeOption is required for PKCE, providing the code challenge derived from the verifier.
-		oauth2.S256ChallengeOption(session.auth.codeVerifier),
+		oauth2.S256ChallengeOption(s.auth.codeVerifier),
 	)
 }
 

@@ -27,7 +27,10 @@ func (eventT) WritePlayerState(w http.ResponseWriter, server *Server) {
 
 	// Write the JSON data in the standard Server-Sent Events (SSE) format:
 	// "data: [json_payload]\n\n"
-	fmt.Fprintf(w, "data: %s\n\n", string(resp))
+	_, err = fmt.Fprintf(w, "data: %s\n\n", string(resp))
+	if err != nil {
+		logrus.WithError(err).Errorf("failed to write player state to response")
+	}
 
 	// Flush the response writer to ensure the data is immediately sent to the client.
 	// This is crucial for real-time updates like SSE.

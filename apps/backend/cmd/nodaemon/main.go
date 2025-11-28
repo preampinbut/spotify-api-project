@@ -52,16 +52,16 @@ func main() {
 	token := config.LoadCredentials(collection)
 
 	var session *app.Session
-	var token_err error = nil
+	var tokenErr error = nil
 	cfg := app.NewConfig(appConfig)
 
 	// 3. Initialize application session based on token status.
 	if token != nil {
 		// Attempt to create a session with an existing token (which handles token refresh/validation internally).
-		session, token_err = app.NewSessionWithToken(cfg, dbClient, collection, token)
+		session, tokenErr = app.NewSessionWithToken(cfg, dbClient, collection, token)
 	}
 
-	if token == nil || token_err != nil {
+	if token == nil || tokenErr != nil {
 		// If no token exists or the existing token failed validation, start a new session for fresh login.
 		session = app.NewSession(cfg, dbClient, collection)
 	}
@@ -75,7 +75,7 @@ func main() {
 	}
 
 	// 4. Handle OAuth2 login flow if no valid token exists.
-	if token == nil || token_err != nil {
+	if token == nil || tokenErr != nil {
 		logrus.Warnf("credentials not existed or revoked, please complete OAuth2 login")
 		done := make(chan struct{})
 		// Start a temporary HTTP server for the OAuth2 redirect/callback.

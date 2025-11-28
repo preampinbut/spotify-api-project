@@ -84,7 +84,7 @@ func fetchPlayerState(server *Server, force bool) error {
 		clientCount := len(server.session.clients)
 		server.session.clientsMutex.Unlock()
 
-		if clientCount <= 0 && force == false {
+		if clientCount <= 0 && !force {
 			server.playerState.IsPlaying = false
 			return nil
 		}
@@ -95,7 +95,12 @@ func fetchPlayerState(server *Server, force bool) error {
 			logrus.WithError(err).Errorf("failed to get player state")
 			return err
 		}
-		defer func() { resp.Body.Close() }()
+		defer func() {
+			err = resp.Body.Close()
+			if err != nil {
+				logrus.WithError(err).Errorf("failed to close response body")
+			}
+		}()
 
 		var respState PlaybackState
 		err = json.NewDecoder(resp.Body).Decode(&respState)
@@ -149,7 +154,12 @@ func fetchPlayerState(server *Server, force bool) error {
 			logrus.WithError(err).Errorf("failed to get artists")
 			return err
 		}
-		defer func() { resp.Body.Close() }()
+		defer func() {
+			err = resp.Body.Close()
+			if err != nil {
+				logrus.WithError(err).Errorf("failed to close response body")
+			}
+		}()
 
 		var artists ResponseArtist
 		err = json.NewDecoder(resp.Body).Decode(&artists)

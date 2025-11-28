@@ -1,3 +1,4 @@
+// Package config provides functionality to load server configuration
 package config
 
 import (
@@ -30,7 +31,7 @@ type Cache struct {
 // ServerConfig holds all necessary configuration settings for the server,
 // primarily sourced from environment variables.
 type ServerConfig struct {
-	ClientId string
+	ClientID string
 	BaseURL  string
 	Port     int
 
@@ -52,11 +53,11 @@ func LoadConfig() (*ServerConfig, error) {
 
 	// --- Application/OAuth Configuration ---
 
-	clientId := os.Getenv("CLIENT_ID")
+	clientID := os.Getenv("CLIENT_ID")
 	baseURL := os.Getenv("BASE_URL")
 	port := os.Getenv("PORT")
 
-	if len(strings.TrimSpace(clientId)) == 0 || len(strings.TrimSpace(baseURL)) == 0 || len(strings.TrimSpace(port)) == 0 {
+	if len(strings.TrimSpace(clientID)) == 0 || len(strings.TrimSpace(baseURL)) == 0 || len(strings.TrimSpace(port)) == 0 {
 		return nil, fmt.Errorf("CLIENT_ID, BASE_URL, and PORT environment variables must be set")
 	}
 
@@ -67,7 +68,7 @@ func LoadConfig() (*ServerConfig, error) {
 
 	// Create and populate the configuration struct.
 	config := ServerConfig{
-		ClientId: clientId,
+		ClientID: clientID,
 		BaseURL:  baseURL,
 		Port:     iPort,
 
