@@ -21,10 +21,8 @@ COPY --from=dependencies /app/node_modules ./node_modules
 
 RUN pnpm build
 
-FROM nginx:alpine
-WORKDIR /usr/share/nginx/html
+FROM caddy:2.10.2-alpine
+WORKDIR /var/www
 
-COPY ./nginx.conf /etc/nginx/templates/default.conf.template
+COPY ./Caddyfile /etc/caddy/Caddyfile
 COPY --from=builder /app/dist .
-
-CMD [ "nginx", "-g", "daemon off;" ]

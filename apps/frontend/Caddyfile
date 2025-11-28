@@ -1,0 +1,4 @@
+:{$PORT:8080}
+root * /var/www
+file_server
+reverse_proxy /api/* {$BACKEND_DOMAIN}
