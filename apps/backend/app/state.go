@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"strings"
 
@@ -45,41 +46,26 @@ type PlaybackState struct {
 }
 
 // fetchPlayerState retrieves the current playback state from the Spotify API.
-// It initializes a default state if none exists and optionally fetches data,
-// even if no clients are listening (if force is true).
 func fetchPlayerState(server *Server, force bool) error {
-	// server.session.WithClient wraps the HTTP request with the necessary
-	// logic to ensure an authenticated and fresh client is used (e.g., handling token refresh).
 	return server.session.WithClient(func(ctx context.Context, client *http.Client) error {
-		// Initialize a default state if the server's player state is nil.
-		// This provides a fallback/placeholder display when no data is available.
 		if server.playerState == nil {
-			playerState := PlaybackState{
+			server.playerState = &PlaybackState{
 				IsPlaying: false,
 				Item: TrackObject{
 					ID:   "",
-					Name: "Pream Pinbut", // Placeholder name
+					Name: "Pream Pinbut",
 					Album: Album{
-						Images: []Images{
-							{URL: ""},
-						},
+						Images: []Images{{URL: ""}},
 					},
-					Artists: []Artist{
-						{
-							ID:   "",
-							Name: "Pream Pinbut", // Placeholder artist
-							Images: []Images{
-								{URL: ""},
-							},
-						},
-					},
+					Artists: []Artist{{
+						ID:   "",
+						Name: "Pream Pinbut",
+						Images: []Images{{URL: ""}},
+					}},
 				},
 			}
-			server.playerState = &playerState
 		}
 
-		// Check the number of connected clients. If there are none and
-		// the fetch is not forced, we stop playback locally to save API calls.
 		server.session.clientsMutex.Lock()
 		clientCount := len(server.session.clients)
 		server.session.clientsMutex.Unlock()
@@ -89,50 +75,36 @@ func fetchPlayerState(server *Server, force bool) error {
 			return nil
 		}
 
-		// 1. Fetch the current player state
 		resp, err := client.Get("https://api.spotify.com/v1/me/player")
 		if err != nil {
-			logrus.WithError(err).Errorf("failed to get player state")
+			logrus.WithError(err).Error("failed to get player state")
 			return err
 		}
 		defer func() {
-			err = resp.Body.Close()
-			if err != nil {
-				logrus.WithError(err).Errorf("failed to close response body")
+			if cerr := resp.Body.Close(); cerr != nil {
+				logrus.WithError(cerr).Warn("failed to close player state response body")
 			}
 		}()
 
 		var respState PlaybackState
-		err = json.NewDecoder(resp.Body).Decode(&respState)
-		if err != nil {
-			// If decoding fails (e.g., empty body or bad JSON), assume playback is stopped.
+		decoder := json.NewDecoder(resp.Body)
+		if err := decoder.Decode(&respState); err != nil {
+			if err == io.EOF {
+				server.playerState.IsPlaying = false
+				return nil
+			}
 			server.playerState.IsPlaying = false
+			logrus.WithError(err).Error("failed to decode player state")
 			return err
 		}
 
-		// Log if the song has changed.
 		if server.playerState.Item.ID != respState.Item.ID {
 			logrus.Infof("update song: %s", respState.Item.Name)
 		}
 
-		// Update basic state properties.
-		server.playerState.IsPlaying = respState.IsPlaying
-		server.playerState.ProgressMs = respState.ProgressMs
-
-		// Update track item details.
-		server.playerState.Item.ID = respState.Item.ID
-		server.playerState.Item.Name = respState.Item.Name
-
-		// Album images array is assumed to exist and have at least one element.
-		server.playerState.Item.Album.ID = respState.Item.Album.ID
-		server.playerState.Item.Album.Images[0].URL = respState.Item.Album.Images[0].URL
-		server.playerState.Item.DurationMs = respState.Item.DurationMs
-
-		// Clear existing artists before fetching detailed information.
+		*server.playerState = respState
 		server.playerState.Item.Artists = server.playerState.Item.Artists[:0]
 
-		// 2. Fetch detailed artist information (including images).
-		// The player state endpoint often lacks full image details for artists.
 		var ids []string
 		for _, artist := range respState.Item.Artists {
 			ids = append(ids, artist.ID)
@@ -140,46 +112,39 @@ func fetchPlayerState(server *Server, force bool) error {
 
 		req, err := http.NewRequest("GET", "https://api.spotify.com/v1/artists", nil)
 		if err != nil {
-			logrus.WithError(err).Errorf("failed to create request for artists")
+			logrus.WithError(err).Error("failed to create request for artists")
 			return err
 		}
 
-		// Batch artist request: set the query parameter 'ids' with comma-separated IDs.
 		q := req.URL.Query()
 		q.Set("ids", strings.Join(ids, ","))
 		req.URL.RawQuery = q.Encode()
 
 		resp, err = client.Do(req)
 		if err != nil {
-			logrus.WithError(err).Errorf("failed to get artists")
+			logrus.WithError(err).Error("failed to get artists")
 			return err
 		}
 		defer func() {
-			err = resp.Body.Close()
-			if err != nil {
-				logrus.WithError(err).Errorf("failed to close response body")
+			if cerr := resp.Body.Close(); cerr != nil {
+				logrus.WithError(cerr).Warn("failed to close artists response body")
 			}
 		}()
-
 		var artists ResponseArtist
-		err = json.NewDecoder(resp.Body).Decode(&artists)
-		if err != nil {
-			logrus.WithError(err).Errorf("failed to decode artists response body")
+		if err := json.NewDecoder(resp.Body).Decode(&artists); err != nil {
+			logrus.WithError(err).Error("failed to decode artists response body")
 			return err
 		}
 
-		// Update the player state with the detailed artist information (especially images).
 		for _, artist := range artists.Artists {
-			var imageURL string
+			imageURL := ""
 			if len(artist.Images) > 0 {
 				imageURL = artist.Images[0].URL
 			}
 			server.playerState.Item.Artists = append(server.playerState.Item.Artists, Artist{
 				ID:   artist.ID,
 				Name: artist.Name,
-				Images: []Images{
-					{URL: imageURL},
-				},
+				Images: []Images{{URL: imageURL}},
 			})
 		}
 

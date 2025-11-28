@@ -1,38 +1,35 @@
 package app
 
 import (
-	"encoding/json" // Package to encode Go data structures into JSON
-	"fmt"           // Package implementing formatted I/O (used for writing the SSE message)
-	"net/http"      // Package for HTTP client and server implementations
+	"encoding/json"
+	"fmt"
+	"net/http"
 
-	"github.com/sirupsen/logrus" // Logging library
+	"github.com/sirupsen/logrus"
 )
 
-// eventT is an empty struct used as a receiver for event-related methods.
+// eventT is a receiver for event-related methods.
 type eventT struct{}
 
-// Event is the globally accessible instance for event-related methods.
+// Event is the global instance for event methods.
 var Event eventT
 
-// WritePlayerState serializes the server's player state and writes it to the
-// HTTP response writer as a Server-Sent Event (SSE) message.
+// WritePlayerState serializes the server's player state and writes it as an SSE message.
 func (eventT) WritePlayerState(w http.ResponseWriter, server *Server) {
-	// Marshal the server's player state into JSON bytes.
 	resp, err := json.Marshal(server.playerState)
 	if err != nil {
-		// Log the error if JSON marshaling fails and exit the function.
-		logrus.WithError(err).Errorf("failed to marshal player state")
+		logrus.WithError(err).Error("failed to marshal player state")
 		return
 	}
 
-	// Write the JSON data in the standard Server-Sent Events (SSE) format:
-	// "data: [json_payload]\n\n"
-	_, err = fmt.Fprintf(w, "data: %s\n\n", string(resp))
-	if err != nil {
-		logrus.WithError(err).Errorf("failed to write player state to response")
+	if _, err := fmt.Fprintf(w, "data: %s\n\n", resp); err != nil {
+		logrus.WithError(err).Error("failed to write player state to response")
+		return
 	}
 
-	// Flush the response writer to ensure the data is immediately sent to the client.
-	// This is crucial for real-time updates like SSE.
-	w.(http.Flusher).Flush()
+	if flusher, ok := w.(http.Flusher); ok {
+		flusher.Flush()
+	} else {
+		logrus.Error("response writer does not support flushing")
+	}
 }

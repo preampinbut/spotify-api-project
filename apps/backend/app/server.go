@@ -9,9 +9,8 @@ import (
 )
 
 type Server struct {
-	session *Session
-	s       *http.Server
-
+	session     *Session
+	s           *http.Server
 	playerState *PlaybackState
 }
 
@@ -30,21 +29,19 @@ func (server *Server) StartOAuth2Server(listener net.Listener, done chan struct{
 	go func() {
 		server.s.Handler = api
 		if err := server.s.Serve(listener); err != nil {
-			logrus.WithError(err).Fatalf("failed to start server")
+			logrus.WithError(err).Fatal("failed to start OAuth2 server")
 		}
 	}()
 }
 
 func (server *Server) StartServer(listener net.Listener) error {
 	api := http.NewServeMux()
-	api.HandleFunc("/api/state",
-		func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Cache-Control", "no-cache")
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			_ = fetchPlayerState(server, true)
-			Event.WritePlayerState(w, server)
-		},
-	)
+	api.HandleFunc("/api/state", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		_ = fetchPlayerState(server, true)
+		Event.WritePlayerState(w, server)
+	})
 	api.HandleFunc("/api/stream", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Content-Type", "text/event-stream")
@@ -53,9 +50,7 @@ func (server *Server) StartServer(listener net.Listener) error {
 
 		tick := time.NewTicker(1 * time.Second)
 		clientKey := r.RemoteAddr
-
 		logrus.Infof("connection from %s", clientKey)
-
 		ctx := r.Context()
 
 		defer func() {
@@ -90,7 +85,6 @@ func (server *Server) StartFetchingSpotify() {
 	defer tick.Stop()
 
 	_ = fetchPlayerState(server, true)
-
 	for range tick.C {
 		_ = fetchPlayerState(server, false)
 	}
