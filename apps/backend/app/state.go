@@ -46,7 +46,7 @@ type PlaybackState struct {
 }
 
 // fetchPlayerState retrieves the current playback state from the Spotify API.
-func fetchPlayerState(server *Server, force bool) error {
+func fetchPlayerState(server *Server) error {
 	return server.session.WithClient(func(ctx context.Context, client *http.Client) error {
 		if server.playerState == nil {
 			server.playerState = &PlaybackState{
@@ -64,15 +64,6 @@ func fetchPlayerState(server *Server, force bool) error {
 					}},
 				},
 			}
-		}
-
-		server.session.clientsMutex.Lock()
-		clientCount := len(server.session.clients)
-		server.session.clientsMutex.Unlock()
-
-		if clientCount <= 0 && !force {
-			server.playerState.IsPlaying = false
-			return nil
 		}
 
 		resp, err := client.Get("https://api.spotify.com/v1/me/player")
