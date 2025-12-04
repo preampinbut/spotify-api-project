@@ -2,17 +2,17 @@
   "name": "spotify",
   "private": true,
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
-    "gen": "turbo backend#generate"
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "generate": "turbo run generate"
   },
   "devDependencies": {
-    "prettier": "^3.2.5",
-    "turbo": "^2.0.14",
-    "typescript": "^5.4.5"
+    "prettier": "^3.7.4",
+    "turbo": "^2.6.2",
+    "typescript": "^5.9.3"
   },
-  "packageManager": "pnpm@10.12.1+sha512.f0dda8580f0ee9481c5c79a1d927b9164f2c478e90992ad268bbb2465a736984391d6333d2c327913578b2804af33474ca554ba29c04a8b13060a717675ae3ac",
-  "engines": {
-    "node": ">=18"
-  }
+  "packageManager": "bun@1.3.3",
+  "workspaces": [
+    "apps/*"
+  ]
 }

@@ -1,28 +1,24 @@
-FROM node:20.10.0-slim AS base
+FROM oven/bun:1-alpine AS base
 WORKDIR /app
 
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+FROM base AS prune
+RUN bun install --global turbo@2.6.2
+COPY --exclude=apps/backend/ . .
+RUN turbo prune frontend --docker
 
 FROM base AS dependencies
-
-COPY package.json pnpm-lock.yaml ./
-
-RUN pnpm install --frozen-lockfile
-
-FROM base AS builder
-
 ARG VITE_BACKEND_ENDPOINT
 ENV VITE_BACKEND_ENDPOINT=$VITE_BACKEND_ENDPOINT
+COPY --from=prune /app/out/json/ .
+RUN bun install
 
-COPY . .
-COPY --from=dependencies /app/node_modules ./node_modules
-
-RUN pnpm build
+FROM base AS builder
+COPY --from=dependencies /app/ .
+COPY --from=prune /app/out/full/ .
+RUN bun turbo build
 
 FROM caddy:2.10.2-alpine
 WORKDIR /var/www
 
-COPY ./Caddyfile /etc/caddy/Caddyfile
-COPY --from=builder /app/dist .
+COPY ./apps/frontend/Caddyfile /etc/caddy/Caddyfile
+COPY --from=builder /app/apps/frontend/dist .
