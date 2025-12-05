@@ -7,18 +7,17 @@ COPY --exclude=apps/backend/ . .
 RUN turbo prune frontend --docker
 
 FROM base AS dependencies
-ARG VITE_BACKEND_ENDPOINT
-ENV VITE_BACKEND_ENDPOINT=$VITE_BACKEND_ENDPOINT
 COPY --from=prune /app/out/json/ .
 RUN bun install
 
 FROM base AS builder
+ARG VITE_BACKEND_ENDPOINT
+ENV VITE_BACKEND_ENDPOINT=$VITE_BACKEND_ENDPOINT
 COPY --from=dependencies /app/ .
 COPY --from=prune /app/out/full/ .
 RUN bun turbo build
 
 FROM caddy:2.10.2-alpine
 WORKDIR /var/www
-
 COPY ./apps/frontend/Caddyfile /etc/caddy/Caddyfile
 COPY --from=builder /app/apps/frontend/dist .

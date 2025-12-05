@@ -55,8 +55,8 @@ export default function usePlaybackState() {
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const endpoint = `${import.meta.env.VITE_BACKEND_ENDPOINT}/api/stream`;
-  const stateEndpoint = `${import.meta.env.VITE_BACKEND_ENDPOINT}/api/state`;
+  const endpoint = `${import.meta.env.VITE_BACKEND_ENDPOINT ?? ""}/api/stream`;
+  const stateEndpoint = `${import.meta.env.VITE_BACKEND_ENDPOINT ?? ""}/api/state`;
 
   /**
    * Clears the progress timer and sets the UI state to either default (connecting)

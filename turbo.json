@@ -8,7 +8,10 @@
     },
     "build": {
       "cache": false,
-      "persistent": false
+      "persistent": false,
+      "env": [
+        "VITE_*"
+      ]
     },
     "dev": {
       "cache": false,
