@@ -46,6 +46,7 @@ func (s *Session) AuthURL() string {
 	s.auth.codeVerifier = oauth2.GenerateVerifier()
 	return s.cfg.AuthCodeURL(
 		s.auth.state,
+		oauth2.AccessTypeOffline,
 		oauth2.S256ChallengeOption(s.auth.codeVerifier),
 	)
 }
