@@ -1,10 +1,11 @@
 package app
 
 import (
-	"backend/config"
 	"context"
 	"net/http"
 	"sync"
+
+	"backend/config"
 
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -44,6 +45,22 @@ func NewSessionWithToken(cfg *oauth2.Config, dbClient *mongo.Client, collection 
 	if err != nil {
 		return nil, err
 	}
+
+	// Validate access token
+	if newToken.AccessToken == "" {
+		logrus.Fatal("token missing access token")
+	}
+
+	// Validate refresh token - should always be present for Spotify with offline access
+	if newToken.RefreshToken == "" {
+		logrus.Fatal("token missing refresh token - ensure offline access scope is requested")
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"has_access_token":  newToken.AccessToken != "",
+		"has_refresh_token": newToken.RefreshToken != "",
+		"expires_at":        newToken.Expiry,
+	}).Info("successfully received tokens")
 
 	return &Session{
 		cfg:          cfg,

@@ -58,8 +58,8 @@ func fetchPlayerState(server *Server) error {
 						Images: []Images{{URL: ""}},
 					},
 					Artists: []Artist{{
-						ID:   "",
-						Name: "Pream Pinbut",
+						ID:     "",
+						Name:   "Pream Pinbut",
 						Images: []Images{{URL: ""}},
 					}},
 				},
@@ -133,8 +133,8 @@ func fetchPlayerState(server *Server) error {
 				imageURL = artist.Images[0].URL
 			}
 			server.playerState.Item.Artists = append(server.playerState.Item.Artists, Artist{
-				ID:   artist.ID,
-				Name: artist.Name,
+				ID:     artist.ID,
+				Name:   artist.Name,
 				Images: []Images{{URL: imageURL}},
 			})
 		}

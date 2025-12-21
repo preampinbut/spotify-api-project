@@ -1,13 +1,14 @@
 package main
 
 import (
-	"backend/app"
-	"backend/config"
 	"context"
 	"fmt"
 	"net"
 	"os"
 	"time"
+
+	"backend/app"
+	"backend/config"
 
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/sirupsen/logrus"

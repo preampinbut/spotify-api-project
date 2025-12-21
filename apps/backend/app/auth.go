@@ -63,6 +63,24 @@ func CallbackHandler(w http.ResponseWriter, r *http.Request, s *Session, done ch
 		logrus.WithError(err).Fatal("failed to exchange token")
 	}
 
+	// Validate access token
+	if token.AccessToken == "" {
+		http.Error(w, "No access token received", http.StatusInternalServerError)
+		logrus.Fatal("token missing access token")
+	}
+
+	// Validate refresh token - should always be present for Spotify with offline access
+	if token.RefreshToken == "" {
+		http.Error(w, "No refresh token received", http.StatusInternalServerError)
+		logrus.Fatal("token missing refresh token - ensure offline access scope is requested")
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"has_access_token":  token.AccessToken != "",
+		"has_refresh_token": token.RefreshToken != "",
+		"expires_at":        token.Expiry,
+	}).Info("successfully received tokens")
+
 	s.token = token
 	if err = config.SaveCredentials(s.collection, s.token); err != nil {
 		logrus.WithError(err).Fatal("failed to save credentials")
