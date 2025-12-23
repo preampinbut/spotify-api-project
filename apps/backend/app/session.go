@@ -89,6 +89,12 @@ func (s *Session) WithClient(fn func(ctx context.Context, client *http.Client) e
 	}
 
 	if s.token.AccessToken != newToken.AccessToken {
+		// Preserve refresh token if not returned by Spotify
+		// According to Oauth2 spec, if refresh token is not included in refresh response
+		// client should continue using existing refresh token
+		if newToken.RefreshToken == "" && s.token.RefreshToken != "" {
+			newToken.RefreshToken = s.token.RefreshToken
+		}
 		s.token = newToken
 		if err = config.SaveCredentials(s.collection, s.token); err != nil {
 			logrus.WithError(err).Fatal("failed to save credentials")
