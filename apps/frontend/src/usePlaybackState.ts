@@ -210,8 +210,10 @@ export default function usePlaybackState() {
       }
     }
 
-    fetchInitialState();
-    initStream();
+    (async () => {
+      await fetchInitialState();
+      initStream();
+    })();
 
     // Cleanup function runs on unmount.
     return () => {
