@@ -43,7 +43,7 @@ func NewServer(session *Session) *Server {
 			},
 			player: PlayerTicker{
 				active:   3,
-				inactive: 10,
+				inactive: 60,
 			},
 		},
 	}

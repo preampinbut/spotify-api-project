@@ -102,6 +102,12 @@ func (s *Session) WithClient(fn func(ctx context.Context, client *http.Client) e
 		logrus.Info("credentials updated")
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"has_access_token":  newToken.AccessToken != "",
+		"has_refresh_token": newToken.RefreshToken != "",
+		"expires_at":        newToken.Expiry,
+	}).Info("successfully received tokens")
+
 	client := s.cfg.Client(ctx, s.token)
 	return fn(ctx, client)
 }
